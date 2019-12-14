@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Tone Matrix</title>
+	<style>
+		html, body {
+			background: black;
+			margin: 0;
+			width: 100%;
+			height: 100%;
+		}
+		body {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+	</style>
+  </head>
+  <body>
+    <canvas width="500" height="500"></canvas>
+	<script src="Tone.js"></script>
+	<script>
+		/**
+		 * Draws a rounded rectangle using the current state of the canvas.
+		 * If you omit the last three params, it will draw a rectangle
+		 * outline with a 5 pixel border radius
+		 * @param {CanvasRenderingContext2D} ctx
+		 * @param {Number} x The top left x coordinate
+		 * @param {Number} y The top left y coordinate
+		 * @param {Number} width The width of the rectangle
+		 * @param {Number} height The height of the rectangle
+		 * @param {Number} [radius = 5] The corner radius; It can also be an object 
+		 *                 to specify different radii for corners
+		 * @param {Number} [radius.tl = 0] Top left
+		 * @param {Number} [radius.tr = 0] Top right
+		 * @param {Number} [radius.br = 0] Bottom right
+		 * @param {Number} [radius.bl = 0] Bottom left
+		 * @param {Boolean} [fill = false] Whether to fill the rectangle.
+		 * @param {Boolean} [stroke = true] Whether to stroke the rectangle.
+		 */
+		function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+		  if (typeof stroke === 'undefined') {
+			stroke = true;
+		  }
+		  if (typeof radius === 'undefined') {
+			radius = 5;
+		  }
+		  if (typeof radius === 'number') {
+			radius = {tl: radius, tr: radius, br: radius, bl: radius};
+		  } else {
+			var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+			for (var side in defaultRadius) {
+			  radius[side] = radius[side] || defaultRadius[side];
+			}
+		  }
+		  ctx.beginPath();
+		  ctx.moveTo(x + radius.tl, y);
+		  ctx.lineTo(x + width - radius.tr, y);
+		  ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+		  ctx.lineTo(x + width, y + height - radius.br);
+		  ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+		  ctx.lineTo(x + radius.bl, y + height);
+		  ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+		  ctx.lineTo(x, y + radius.tl);
+		  ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+		  ctx.closePath();
+		  if (fill) {
+			ctx.fill();
+		  }
+		  if (stroke) {
+			ctx.stroke();
+		  }
+
+		}
+	</script>
+	<script>
+		class Grid {
+			constructor(canvas) {
+				this.c = canvas;
+				this.ctx = canvas.getContext("2d");
+				this.width = this.height = 16;
+				this.data = Array(this.width * this.height).fill(false);
+
+				canvas.addEventListener('click', (e) => {
+				  let rect = canvas.getBoundingClientRect(), // abs. size of element
+					  scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
+					  scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+				  
+				  this.handleClick((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+				});
+				
+				this.draw();
+			}
+
+			getTileValue(x, y) {
+				return this.data[x * this.width + y];
+			}
+
+			setTileValue(x, y, bool) {
+				this.data[x * this.width + y] = bool;
+			}
+
+			toggleTileValue(x, y) {
+				let i = x * this.width + y;
+				this.data[i] = !this.data[i];
+			}
+		  
+			draw() {
+				this.ctx.beginPath();
+				this.ctx.rect(0, 0, this.c.width, this.c.height);
+				this.ctx.fillStyle = "black";
+				this.ctx.fill();
+				
+				// Draw each tile
+				for (let i = 0; i < this.data.length; i++) {
+					let dx, dy;
+					dx = dy = this.c.width / this.width;
+					let gridx = i % this.width;
+					let gridy = Math.floor(i / this.width);
+					let x = dx * gridx;
+					let y = dy * gridy;
+					
+					// Draw background
+					
+					let on = this.getTileValue(gridx, gridy);
+					const margin = on ? 3 : 4;
+					
+					this.ctx.beginPath();
+					this.ctx.fillStyle = on ? "#dadada" : "#333";
+					if (on) this.ctx.filter = 'blur(1px)';
+					else this.ctx.filter = 'none';
+					roundRect(this.ctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
+				}
+			}
+		  
+			handleClick(x, y) {
+				let dx, dy;
+				dx = dy = this.c.width / this.width;
+				let xCoord = Math.floor(x / dx);
+				let yCoord = Math.floor(y / dy);
+				this.toggleTileValue(xCoord, yCoord);
+				console.log("tile clicked: (" + xCoord + ", " + yCoord + "), canvas: (" + x + ", " + y + ")");
+				this.draw();
+			}
+		}
+		
+		let grid = new Grid(document.querySelector("canvas"));
+		
+		//var synth = new Tone.AMSynth().toMaster();
+		var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
+		
+		//this function is called right before the scheduled time
+		function triggerSynth(time){
+			//the time is the sample-accurate time of the event
+			synth.triggerAttackRelease('C2', '8n', time)
+		}
+
+		//schedule a few notes
+		Tone.Transport.schedule(triggerSynth, 0)
+		Tone.Transport.schedule(triggerSynth, '0:2')
+		Tone.Transport.schedule(triggerSynth, '0:2:2.5')
+
+		//set the transport to repeat
+		Tone.Transport.loopEnd = '1m'
+		Tone.Transport.loop = true
+
+		//start/stop the transport
+		//document.querySelector('tone-play-toggle').addEventListener('change', e => Tone.Transport.toggle())
+		//Tone.Transport.toggle();
+		
+		// Get our live loop going
+		
+		// construct scale
+		let pentatonic = ["C", "D", "E", "G", "A"];
+		let octave = 4;
+		let scale = Array(grid.height);
+		for (let i = 0; i < grid.height; i++) {
+			scale[i] = pentatonic[i % pentatonic.length] + (octave + Math.floor(i / pentatonic.length));
+		}
+		
+		let x = 0;
+		setInterval(function() {
+			for (y = 0; y < grid.height; y++) {
+				let tile = grid.getTileValue(x, y);
+				if (tile) {
+				    console.log(scale[grid.height - y - 1]);
+					synth.triggerAttackRelease(scale[grid.height - y - 1], '8n');
+				}
+			}
+			x++;
+			if (x > grid.width) x = 0;
+		}, 100);
+	</script>
+  </body>
+</html>
