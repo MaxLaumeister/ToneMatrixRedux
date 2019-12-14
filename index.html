@@ -91,20 +91,49 @@
 				  this.handleClick((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
 				});
 				
+				// construct scale
+				let pentatonic = ["A", "B", "C#", "E", "F#"];
+				let octave = 3; // base octave
+				let octaveoffset = 3;
+				this.scale = Array(this.height);
+				for (let i = 0; i < this.height; i++) {
+					this.scale[i] = pentatonic[i % pentatonic.length] + (octave + Math.floor((i + octaveoffset) / pentatonic.length));
+				}
+				this.scale = this.scale.reverse(); // higher notes at lower y values, near the top
+				
+				// Init synth
+				
+				this.synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
+				Tone.Transport.loopEnd = '1m'; // loop at one measure
+				Tone.Transport.loop = true;
+				Tone.Transport.toggle(); // start
+				
+				// Draw
+				
 				this.draw();
 			}
 
 			getTileValue(x, y) {
-				return this.data[x * this.width + y];
+				return this.data[x * this.width + y] !== false;
 			}
 
 			setTileValue(x, y, bool) {
-				this.data[x * this.width + y] = bool;
+				if (bool) {
+					// Turning on, schedule note
+					this.data[x * this.width + y] = Tone.Transport.schedule((function(time) {
+						this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.width, time);
+						console.log(this.scale[y]);
+					}).bind(this), Tone.Time('1m') / this.width * x);
+				
+				} else {
+					// Turning off, unschedule note
+					Tone.Transport.clear(this.data[x * this.width + y]);
+					this.data[x * this.width + y] = false;
+				}
 			}
 
 			toggleTileValue(x, y) {
-				let i = x * this.width + y;
-				this.data[i] = !this.data[i];
+				this.setTileValue(x, y, !this.getTileValue(x, y));
 			}
 		  
 			draw() {
@@ -149,49 +178,38 @@
 		let grid = new Grid(document.querySelector("canvas"));
 		
 		//var synth = new Tone.AMSynth().toMaster();
-		var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 		
 		//this function is called right before the scheduled time
-		function triggerSynth(time){
-			//the time is the sample-accurate time of the event
-			synth.triggerAttackRelease('C2', '8n', time)
-		}
+		//function triggerSynth(time){
+		//	//the time is the sample-accurate time of the event
+		//	synth.triggerAttackRelease('C2', '8n', time)
+		//}
 
 		//schedule a few notes
-		Tone.Transport.schedule(triggerSynth, 0)
-		Tone.Transport.schedule(triggerSynth, '0:2')
-		Tone.Transport.schedule(triggerSynth, '0:2:2.5')
+		//Tone.Transport.schedule(triggerSynth, 0)
+		//Tone.Transport.schedule(triggerSynth, '0:2')
+		//Tone.Transport.schedule(triggerSynth, '0:2:2.5')
 
 		//set the transport to repeat
-		Tone.Transport.loopEnd = '1m'
-		Tone.Transport.loop = true
-
-		//start/stop the transport
-		//document.querySelector('tone-play-toggle').addEventListener('change', e => Tone.Transport.toggle())
-		//Tone.Transport.toggle();
+		
 		
 		// Get our live loop going
 		
-		// construct scale
-		let pentatonic = ["C", "D", "E", "G", "A"];
-		let octave = 4;
-		let scale = Array(grid.height);
-		for (let i = 0; i < grid.height; i++) {
-			scale[i] = pentatonic[i % pentatonic.length] + (octave + Math.floor(i / pentatonic.length));
-		}
 		
+		/*
 		let x = 0;
 		setInterval(function() {
 			for (y = 0; y < grid.height; y++) {
 				let tile = grid.getTileValue(x, y);
 				if (tile) {
 				    console.log(scale[grid.height - y - 1]);
-					synth.triggerAttackRelease(scale[grid.height - y - 1], '8n');
+					//synth.triggerAttackRelease(scale[grid.height - y - 1], '8n');
 				}
 			}
 			x++;
 			if (x > grid.width) x = 0;
 		}, 100);
+		*/
 	</script>
   </body>
 </html>
