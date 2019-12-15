@@ -50,12 +50,54 @@
 			font-weight: 100;
 			color: #ddd;
 		}
+		main {
+			width: 500px;
+			height: 500px;
+			perspective: 1000px; /* Remove this if you don't want the 3D effect */
+		}
+		main .inner {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			text-align: center;
+			transition: transform 0.8s;
+			transform-style: preserve-3d;
+		}
+		main.flipped .inner {
+			transform: rotateX(-180deg);
+		}
+		main .front, main .back {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: 0;
+			backface-visibility: hidden;
+		}
+		main .back {
+			transform: rotateX(-180deg);
+			background: rgb(51, 51, 51);
+			border-radius: 5px;
+		}
+		main .back, main .back a {
+			color: #ccc;
+		}
+		#flipButton img {
+			opacity: 0.4;
+		}
 	</style>
   </head>
   <body>
 	<h1>ToneMatrix Redux</h1>
-    <canvas width="500" height="500"></canvas>
-	<p>By <a href="https://www.maxlaumeister.com/">Max L</a> - Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">View on GitHub</a>
+    <main>
+		<div class="inner">
+			<canvas class="front" width="500" height="500"></canvas>
+			<div class="back">
+				<p>By <a href="https://www.maxlaumeister.com/">Max L</a> - Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">View on GitHub</a>
+			</div>
+		</div>
+	</main>
+	<p><a id="flipButton" href="javascript:void(0)"><img width="20" height="20" src="questionmark.svg"></a></p>
 	<script src="Tone.js"></script>
 	<script>
 		(function() {
@@ -331,6 +373,11 @@
 			
 			new Grid(document.querySelector("canvas"));
 		})();
+	</script>
+	<script>
+		document.querySelector("#flipButton").addEventListener("click", function() {
+			document.querySelector("main").classList.toggle("flipped");
+		});
 	</script>
   </body>
 </html>
