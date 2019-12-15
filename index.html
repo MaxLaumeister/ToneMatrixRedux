@@ -349,6 +349,14 @@
 					dx = dy = this.c.width / this.width;
 					let xCoord = Math.floor(x / dx);
 					let yCoord = Math.floor(y / dy);
+					if (
+						xCoord >= this.width ||
+						yCoord >= this.width ||
+						xCoord < 0 ||
+						yCoord < 0
+					) {
+						return false;
+					}
 					return {x: xCoord, y: yCoord};
 				}
 			  
@@ -367,7 +375,7 @@
 					for (let i = 0; i < ps.NUM_PARTICLES; i++) {
 						let p = ps.particles[i];
 						let tile = this.getTileCollision(p.x, p.y);
-						heatmap[this.width * tile.y + tile.x] = p.life;
+						if (tile) heatmap[this.width * tile.y + tile.x] = p.life;
 					}
 					return heatmap;
 				}
