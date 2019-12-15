@@ -202,7 +202,17 @@
 					
 					// Init synth
 					
-					this.synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
+					this.synth = new Tone.PolySynth(16, Tone.Synth, {
+						oscillator : {
+							type : "sine"
+						},
+						envelope : {
+							attack : 0.005 ,
+							decay : 0.1 ,
+							sustain : 0.3 ,
+							release : 1
+						}
+					}).toMaster();
 					this.synth.volume.value = -10;
 					Tone.Transport.loopEnd = '1m'; // loop at one measure
 					Tone.Transport.loop = true;
