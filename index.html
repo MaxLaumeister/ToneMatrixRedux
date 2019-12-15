@@ -191,9 +191,9 @@
 					
 					// Construct scale array
 					
-					let pentatonic = ["A", "B", "C#", "E", "F#"];
+					let pentatonic = ["B#", "D", "F", "G", "A"];
 					let octave = 3; // base octave
-					let octaveoffset = 3;
+					let octaveoffset = 4;
 					this.scale = Array(this.height);
 					for (let i = 0; i < this.height; i++) {
 						this.scale[i] = pentatonic[i % pentatonic.length] + (octave + Math.floor((i + octaveoffset) / pentatonic.length));
@@ -201,6 +201,11 @@
 					this.scale = this.scale.reverse(); // higher notes at lower y values, near the top
 					
 					// Init synth
+					
+					const lowPass = new Tone.Filter({
+						frequency: 1100,
+						rolloff: -12
+					}).toMaster();
 					
 					this.synth = new Tone.PolySynth(16, Tone.Synth, {
 						oscillator : {
@@ -212,8 +217,10 @@
 							sustain : 0.3 ,
 							release : 1
 						}
-					}).toMaster();
+					}).connect(lowPass);
+					
 					this.synth.volume.value = -10;
+					
 					Tone.Transport.loopEnd = '1m'; // loop at one measure
 					Tone.Transport.loop = true;
 					Tone.Transport.toggle(); // start
