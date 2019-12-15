@@ -100,12 +100,13 @@
 			class ParticleSystem {
 				constructor(width, height) {
 					this.NUM_PARTICLES = 100;
-					this.PARTICLE_LIFETIME = 30;
+					this.PARTICLE_LIFETIME = 40;
 					
 					this.width = width;
 					this.height = height;
 					
 					this.oldestParticle = 0;
+					this.lastTick = 0;
 					
 					this.particles = new Array(this.NUM_PARTICLES);
 					for (let i = 0; i < this.NUM_PARTICLES; i++) {
@@ -125,22 +126,31 @@
 				}
 				
 				tickParticles() {
-					for (let i = 0; i < this.NUM_PARTICLES; i++) {
-						let p = this.particles[i];
-						if (p.life <= 0) continue;
-						p.x += p.vx;
-						if (p.x > this.width || p.x < 0) {
-							// x overflow/underflow
-							p.vx = -p.vx;
-							p.x += p.vx;
+					if (this.lastTick !== 0) {
+						let now = Date.now();
+						let deltaTime = (now - this.lastTick) / 16.67; // 60fps is a time factor of 1
+						for (let i = 0; i < this.NUM_PARTICLES; i++) {
+							let p = this.particles[i];
+							if (p.life <= 0) continue;
+							let pvx = p.vx * deltaTime;
+							let pvy = p.vy * deltaTime;
+							p.x += pvx;
+							if (p.x > this.width || p.x < 0) {
+								// x overflow/underflow
+								p.vx = -p.vx;
+								p.x += pvx;
+							}
+							p.y += pvy;
+							if (p.y > this.height || p.y < 0) {
+								// y overflow/underflow
+								p.vy = -p.vy;
+								p.y += pvy;
+							}
+							p.life--;
 						}
-						p.y += p.vy;
-						if (p.y > this.height || p.y < 0) {
-							// y overflow/underflow
-							p.vy = -p.vy;
-							p.y += p.vy;
-						}
-						p.life--;
+						this.lastTick = now;
+					} else {
+						this.lastTick = Date.now();
 					}
 				}
 			}
@@ -252,8 +262,6 @@
 						// Draw background
 						
 						let on = this.getTileValue(gridx, gridy);
-						
-						this.ctx.beginPath();
 						
 						let playheadx = Math.floor(Tone.Transport.progress * this.width);
 						
