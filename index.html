@@ -91,11 +91,11 @@
   </head>
   <body>
 	<h1>ToneMatrix Redux</h1>
+	<p class="share-wrap">
+		Share Your Tone: <input id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
+	</p>
     <canvas width="500" height="500"></canvas>
 	<p><a id="clearnotes" class="button" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">GitHub</a></p>
-	<div class="share-wrap">
-		Share Your Tone: <input id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
-	</div>
 	<script src="Tone.js"></script>
 	<script>
 		(function() {
@@ -231,10 +231,22 @@
 					canvas.width = rect.width * this.dpr;
 					canvas.height = rect.height * this.dpr;
 					
-					// Load tune from URL hash, then remove hash
+					// Clipboard input element
 					
-					this.base64ToGrid(window.location.hash.split('#')[1]);
-					history.replaceState("", document.title, window.location.pathname + window.location.search);
+					this.clipboardInputEl = document.querySelector("#clipboard-input"); // TODO: Pass this in through constructor
+					this.originalURL = [location.protocol, '//', location.host, location.pathname].join(''); // Initial page URL without query string
+					
+					// Load tune from search string, then remove it
+					
+					const urlParams = new URLSearchParams(window.location.search);
+					const data = urlParams.get('d');
+					if(data) {
+						this.base64ToGrid(data);
+						this.setCopyURL(data);
+						history.replaceState("", document.title, window.location.pathname);
+					} else {
+						this.setCopyURL("");
+					}
 
 					// Listen for clicks on the canvas
 					
@@ -331,11 +343,6 @@
 					ssctx.filter = 'blur(' + (this.dpr * 2) + 'px)';
 					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					
-					// Clipboard input element
-					
-					this.clipboardInputEl = document.querySelector("#clipboard-input"); // TODO: Pass this in through constructor
-					this.originalURL = location.href.split("#")[0];
-					
 					// Kick off drawing loop
 					
 					let drawContinuous = (function() {
@@ -350,12 +357,13 @@
 				clearGrid() {
 					this.data = Array(this.width * this.height).fill(false);
 					Tone.Transport.cancel();
-					this.setHash(""); // get rid of hash
+					this.setCopyURL(""); // get rid of hash
 				}
 				
-				setHash(hash) {
-					if (hash) {
-						this.clipboardInputEl.value = this.originalURL + "#" + hash;
+				setCopyURL(data) {
+					if (data) {
+						let params = new URLSearchParams({v: "1", d: data});
+						this.clipboardInputEl.value = this.originalURL + "?" + params;
 					} else {
 						this.clipboardInputEl.value = this.originalURL;
 					}
@@ -459,7 +467,7 @@
 					this.toggleTileValue(tile.x, tile.y);
 					// Update URL fragment
 					let base64 = this.gridToBase64();
-					this.setHash(base64);
+					this.setCopyURL(base64);
 				}
 				
 				getParticleHeatMap() {
@@ -536,7 +544,6 @@
 	<script src="clipboard.min.js"></script>
 	<script>
 		new ClipboardJS('.clipboard');
-		document.querySelector("#clipboard-input").value = window.location;
 	</script>
   </body>
 </html>
