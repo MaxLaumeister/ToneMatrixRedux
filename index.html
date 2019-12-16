@@ -53,6 +53,10 @@
 		#clearnotes:hover {
 			background: #555;
 		}
+		canvas {
+			width: 500px;
+			height: 500px;
+		}
 	</style>
   </head>
   <body>
@@ -182,6 +186,17 @@
 					this.width = this.height = 16;
 					this.data = Array(this.width * this.height).fill(false);
 					
+					// Resize canvas for hidpi display, if needed
+					
+					// Get the device pixel ratio, falling back to 1.
+					this.dpr = window.devicePixelRatio || 1;
+					// Get the size of the canvas in CSS pixels.
+					var rect = canvas.getBoundingClientRect();
+					// Give the canvas pixel dimensions of their CSS
+					// size * the device pixel ratio.
+					canvas.width = rect.width * this.dpr;
+					canvas.height = rect.height * this.dpr;
+					
 					// Load tune from URL hash
 					
 					this.base64ToGrid(window.location.hash.split('#')[1]);
@@ -259,7 +274,7 @@
 					
 					// Draw rectangle 1 - unarmed white rectangle
 					
-					margin = 4;
+					margin = 4*this.dpr;
 					x = 0;
 					y = 0;
 					ssctx.filter = 'none';
@@ -267,18 +282,18 @@
 					
 					// Draw rectangle 2 - armed white rectangle
 					
-					margin = 3;
+					margin = 3*this.dpr;
 					x = dx;
 					y = 0;
-					ssctx.filter = 'blur(1px)';
+					ssctx.filter = 'blur('+ this.dpr +'px)';
 					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					
 					// Draw rectangle 3 - activated white rectangle
 					
-					margin = 2;
+					margin = 2*this.dpr;
 					x = 2*dx;
 					y = 0;
-					ssctx.filter = 'blur(2px)';
+					ssctx.filter = 'blur(' + (this.dpr * 2) + 'px)';
 					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					
 					// Kick off drawing loop
@@ -311,7 +326,7 @@
 							this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.width, time);
 							let px = this.c.width / this.width * (x + 0.5);
 							let py = this.c.height / this.height * (y + 0.5);
-							let velocityscalar = 10;
+							let velocityscalar = 10 * this.dpr;
 							let numparticles = 20;
 							for (let i = 0; i < 2 * Math.PI; i += 2 * Math.PI / 20) {
 								let pvx = Math.cos(i) * velocityscalar;
