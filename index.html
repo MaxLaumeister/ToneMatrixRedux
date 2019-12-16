@@ -271,7 +271,7 @@
 			
 			class ParticleSystem {
 				constructor(width, height) {
-					this.NUM_PARTICLES = 100;
+					this.PARTICLE_POOL_SIZE = 200;
 					this.PARTICLE_LIFETIME = 40;
 					
 					this.width = width;
@@ -280,8 +280,8 @@
 					this.oldestParticle = 0;
 					this.lastTick = 0;
 					
-					this.particles = new Array(this.NUM_PARTICLES);
-					for (let i = 0; i < this.NUM_PARTICLES; i++) {
+					this.particles = new Array(this.PARTICLE_POOL_SIZE);
+					for (let i = 0; i < this.PARTICLE_POOL_SIZE; i++) {
 						this.particles[i] = {};
 					}
 				}
@@ -294,14 +294,14 @@
 					p.vy = vy;
 					p.life = this.PARTICLE_LIFETIME;
 					this.oldestParticle++;
-					if (this.oldestParticle >= this.NUM_PARTICLES) this.oldestParticle = 0;
+					if (this.oldestParticle >= this.PARTICLE_POOL_SIZE) this.oldestParticle = 0;
 				}
 				
 				tickParticles() {
 					if (this.lastTick !== 0) {
 						let now = Date.now();
 						let deltaTime = (now - this.lastTick) / 16.67; // 60fps is a time factor of 1
-						for (let i = 0; i < this.NUM_PARTICLES; i++) {
+						for (let i = 0; i < this.PARTICLE_POOL_SIZE; i++) {
 							let p = this.particles[i];
 							if (p.life <= 0) continue;
 							let pvx = p.vx * deltaTime;
@@ -329,6 +329,8 @@
 			
 			class Grid {
 				constructor(canvas) {
+					this.DEBUG = false;
+					
 					this.c = canvas;
 					this.ctx = canvas.getContext("2d");
 					this.width = this.height = 16;
@@ -594,6 +596,18 @@
 							this.ctx.drawImage(this.spriteSheet, 0, 0, dx, dy, x, y, dx, dy);
 						}
 					}
+					
+					// Draw particles
+					
+					if (this.DEBUG) {
+						let ps = this.particleSystem;
+						for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i++) {
+							let p = ps.particles[i];
+							this.ctx.globalAlpha = 1;
+							this.ctx.fillStyle = "white";
+							this.ctx.fillRect( p.x, p.y, 2, 2 );
+						}
+					}
 				}
 				
 				getTileCollision(x, y) {
@@ -615,7 +629,7 @@
 				getParticleHeatMap() {
 					let heatmap = Array(this.width * this.height).fill(0);
 					let ps = this.particleSystem;
-					for (let i = 0; i < ps.NUM_PARTICLES; i++) {
+					for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i++) {
 						let p = ps.particles[i];
 						let tile = this.getTileCollision(p.x, p.y);
 						if (tile) heatmap[this.width * tile.y + tile.x] = p.life;

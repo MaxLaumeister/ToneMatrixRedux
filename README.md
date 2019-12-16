@@ -8,4 +8,4 @@ Click on the boxes and make music! This project is an HTML5 revival of [ToneMatr
 
 ## TODO
 
-* Make it so that every playhead on every device everywhere is clock-synchronized
+* Fix crackling on mobile - set tone.js latency
