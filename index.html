@@ -16,6 +16,9 @@
 			font-style: normal;
 			font-display: block;
 		}
+		* {
+			user-select: none;
+		}
 		html, body {
 			background: black;
 			margin: 0;
@@ -250,13 +253,19 @@
 
 					// Listen for clicks on the canvas
 					
-					canvas.addEventListener('click', (e) => {
+					function canvasClick(e, dragged = false) {
+						
 						let rect = canvas.getBoundingClientRect(), // abs. size of element
 						  scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
 						  scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
 					  
-						this.handleClick((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
-					});
+						this.handleClick((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY, dragged);
+					}
+					canvas.addEventListener('mousemove', (function(e) {
+						if (e.buttons !== 1) return; // Only if left button is held
+						canvasClick.bind(this)(e, true);
+					}).bind(this));
+					canvas.addEventListener('mousedown', canvasClick.bind(this));
 					
 					// Construct scale array
 					
@@ -375,6 +384,7 @@
 
 				setTileValue(x, y, bool) {
 					if (bool) {
+						if (this.getTileValue(x, y)) return;
 						// Make sure AudioContext has started
 						Tone.context.resume();
 						// Turning on, schedule note
@@ -392,6 +402,7 @@
 							
 						}).bind(this), Tone.Time('1m') / this.width * x);
 					} else {
+						if (!this.getTileValue(x, y)) return;
 						// Turning off, unschedule note
 						Tone.Transport.clear(this.data[x * this.width + y]);
 						this.data[x * this.width + y] = false;
@@ -462,9 +473,10 @@
 					return {x: xCoord, y: yCoord};
 				}
 			  
-				handleClick(x, y) {
+				handleClick(x, y, dragged) {
 					let tile = this.getTileCollision(x, y);
-					this.toggleTileValue(tile.x, tile.y);
+					if (!dragged) this.toggleTileValue(tile.x, tile.y);
+					else this.setTileValue(tile.x, tile.y, true);
 					// Update URL fragment
 					let base64 = this.gridToBase64();
 					this.setCopyURL(base64);
@@ -502,7 +514,7 @@
 					var binary = '';
 					var len = bytes.byteLength;
 					for (var i = 0; i < len; i++) {
-						binary += String.fromCharCode( bytes[ i ] + i );
+						binary += String.fromCharCode( bytes[ i ] );
 					}
 					let base64 = btoa(binary);
 					let base64enc = encodeURIComponent(base64);
@@ -517,7 +529,7 @@
 						let bytes = new Uint8Array(this.data.length / 8);
 						let str = "";
 						for (let i = 0; i < this.data.length / 8; i++) {
-							let byte = binary.charCodeAt(i) - i;
+							let byte = binary.charCodeAt(i);
 							bytes[i] = byte;
 							let bits = byte.toString(2);
 							bits = bits.padStart(8, "0");
