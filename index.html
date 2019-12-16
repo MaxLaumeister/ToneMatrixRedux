@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=530, user-scalable=no">
     <title>ToneMatrix Redux, a no-Flash pentatonic step sequencer</title>
 	<link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+	<link rel="canonical" href="https://www.maxlaumeister.com/tonematrix/">
 	<meta name="msapplication-TileColor" content="#000000">
 	<meta name="theme-color" content="#000000">
 	<style>
@@ -13,7 +14,7 @@
 			src: url('montserrat-thin-webfont.woff2') format('woff2');
 			font-weight: 100;
 			font-style: normal;
-
+			font-display: block;
 		}
 		html, body {
 			background: black;
@@ -225,6 +226,7 @@
 					
 					this.synth.volume.value = -10;
 					
+					Tone.context.latencyHint = 'balanced'; // Queue events ahead of time
 					Tone.Transport.loopEnd = '1m'; // loop at one measure
 					Tone.Transport.loop = true;
 					Tone.Transport.toggle(); // start
@@ -232,6 +234,50 @@
 					// Init particle system
 					
 					this.particleSystem = new ParticleSystem(this.c.width, this.c.height);
+					
+					// Draw rectangle sprite sheet
+					
+					this.spriteSheet = document.createElement('canvas');
+					this.spriteSheetContext = this.spriteSheet.getContext("2d");
+					let ss = this.spriteSheet;
+					let ssctx = this.spriteSheetContext;
+					let tileWidth = this.c.width / this.width;
+					let tileHeight = this.c.height / this.height;
+					ss.width = 3 * tileWidth; // 3 rectangles
+					ss.height = tileHeight;
+					
+					// For all rectangles
+					
+					let margin;
+					let x;
+					let y;
+					const dx = this.c.width / this.width;
+					const dy = this.c.height / this.height;
+					ssctx.fillStyle = '#fff';
+					
+					// Draw rectangle 1 - unarmed white rectangle
+					
+					margin = 4;
+					x = 0;
+					y = 0;
+					ssctx.filter = 'none';
+					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
+					
+					// Draw rectangle 2 - armed white rectangle
+					
+					margin = 3;
+					x = dx;
+					y = 0;
+					ssctx.filter = 'blur(1px)';
+					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
+					
+					// Draw rectangle 3 - activated white rectangle
+					
+					margin = 2;
+					x = 2*dx;
+					y = 0;
+					ssctx.filter = 'blur(2px)';
+					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					
 					// Kick off drawing loop
 					
@@ -284,6 +330,10 @@
 				}
 			  
 				draw() {
+					// Defaults
+					this.ctx.globalAlpha = 1;
+					this.ctx.filter = 'none';
+					
 					this.ctx.beginPath();
 					this.ctx.rect(0, 0, this.c.width, this.c.height);
 					this.ctx.fillStyle = "black";
@@ -302,8 +352,6 @@
 						let x = dx * gridx;
 						let y = dy * gridy;
 						
-						// Draw background
-						
 						let on = this.getTileValue(gridx, gridy);
 						
 						let playheadx = Math.floor(Tone.Transport.progress * this.width);
@@ -311,22 +359,17 @@
 						let margin;
 						if (on) {
 							if (gridx === playheadx) {
-								this.ctx.fillStyle = "#fff";
-								this.ctx.filter = 'blur(2px)';
-								margin = 2;
+								this.ctx.globalAlpha = 1;
+								this.ctx.drawImage(this.spriteSheet, dx*2, 0, dx, dy, x, y, dx, dy);
 							} else {
-								this.ctx.fillStyle = "#dadada";
-								this.ctx.filter = 'blur(1px)';
-								margin = 3;
+								this.ctx.globalAlpha = 0.85;
+								this.ctx.drawImage(this.spriteSheet, dx, 0, dx, dy, x, y, dx, dy);
 							}
 						} else {
 							const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
-							let fill = colorMixer([255, 255, 255], [51, 51, 51], heatmap[i] / this.particleSystem.PARTICLE_LIFETIME * BRIGHTNESS);
-							this.ctx.fillStyle = fill;
-							this.ctx.filter = 'none';
-							margin = 4;
+							this.ctx.globalAlpha = (heatmap[i] / this.particleSystem.PARTICLE_LIFETIME * BRIGHTNESS * 204/255) + 51/255;
+							this.ctx.drawImage(this.spriteSheet, 0, 0, dx, dy, x, y, dx, dy);
 						}
-						roundRect(this.ctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					}
 				}
 				
