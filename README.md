@@ -9,4 +9,3 @@ Click on the boxes and make music! This project is an HTML5 revival of [ToneMatr
 ## TODO
 
 * Better chrome audio experience when loading existing song
-* Click and drag
