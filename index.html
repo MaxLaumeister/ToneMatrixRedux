@@ -40,32 +40,66 @@
 			color: #ddd;
 		}
 		#clearnotes {
-			display: inline-block;
-			color: #ddd;
-			font-weight: bold;
-			background: #333;
-			padding: 7px;
-			border-radius: 4px;
-			text-decoration: none;
-			border: solid gray 1px;
 			margin-right: 10px;
-		}
-		#clearnotes:hover {
-			background: #555;
+			padding: 7px;
 		}
 		canvas {
 			width: 500px;
 			height: 500px;
+			margin: -4px 0;
+		}
+		#clipboard-input {
+			height: 24px;
+			width: 300px;
+			background-color: #222;
+			color: #999;
+			border: solid #444 1px;
+			padding: 0 5px;
+			border-radius: 3px 0 0 3px;
+			font-size: 0.7em;
+		}
+		button.clipboard {
+			height: 26px;
+			color: #aaa;
+			border-radius: 0 3px 3px 0;
+		}
+		button, .button {
+			display: inline-block;
+			color: #ddd;
+			font-weight: bold;
+			background: #333;
+			border-radius: 4px;
+			text-decoration: none;
+			border: solid gray 1px;
+		}
+		button:hover, .button:hover {
+			background: #555;
+			cursor: pointer;
+		}
+		.icon {
+			height: 1em;
+			filter: invert(1);
+			vertical-align: middle;
+		}
+		.share-wrap {
+			font-size: 0.8em;
+		}
+		.share-wrap > * {
+			vertical-align: middle;
 		}
 	</style>
   </head>
   <body>
 	<h1>ToneMatrix Redux</h1>
     <canvas width="500" height="500"></canvas>
-	<p><a id="clearnotes" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">GitHub</a>
+	<p><a id="clearnotes" class="button" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">GitHub</a></p>
+	<div class="share-wrap">
+		Share Your Tone: <input id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
+	</div>
 	<script src="Tone.js"></script>
 	<script>
 		(function() {
+			
 			// Color mixer
 			// https://stackoverflow.com/a/32171077/2234742
 			
@@ -197,9 +231,10 @@
 					canvas.width = rect.width * this.dpr;
 					canvas.height = rect.height * this.dpr;
 					
-					// Load tune from URL hash
+					// Load tune from URL hash, then remove hash
 					
 					this.base64ToGrid(window.location.hash.split('#')[1]);
+					history.replaceState("", document.title, window.location.pathname + window.location.search);
 
 					// Listen for clicks on the canvas
 					
@@ -296,6 +331,11 @@
 					ssctx.filter = 'blur(' + (this.dpr * 2) + 'px)';
 					roundRect(ssctx, x+margin, y+margin, dx-2*margin, dy-2*margin, 2, true, false);
 					
+					// Clipboard input element
+					
+					this.clipboardInputEl = document.querySelector("#clipboard-input"); // TODO: Pass this in through constructor
+					this.originalURL = location.href.split("#")[0];
+					
 					// Kick off drawing loop
 					
 					let drawContinuous = (function() {
@@ -310,7 +350,15 @@
 				clearGrid() {
 					this.data = Array(this.width * this.height).fill(false);
 					Tone.Transport.cancel();
-					history.replaceState("", document.title, window.location.pathname); // get rid of hash
+					this.setHash(""); // get rid of hash
+				}
+				
+				setHash(hash) {
+					if (hash) {
+						this.clipboardInputEl.value = this.originalURL + "#" + hash;
+					} else {
+						this.clipboardInputEl.value = this.originalURL;
+					}
 				}
 
 				getTileValue(x, y) {
@@ -411,8 +459,7 @@
 					this.toggleTileValue(tile.x, tile.y);
 					// Update URL fragment
 					let base64 = this.gridToBase64();
-					if (base64) history.replaceState(undefined, undefined, "#" + base64);
-					else history.replaceState("", document.title, window.location.pathname);
+					this.setHash(base64);
 				}
 				
 				getParticleHeatMap() {
@@ -447,7 +494,7 @@
 					var binary = '';
 					var len = bytes.byteLength;
 					for (var i = 0; i < len; i++) {
-						binary += String.fromCharCode( bytes[ i ] );
+						binary += String.fromCharCode( bytes[ i ] + i );
 					}
 					let base64 = btoa(binary);
 					let base64enc = encodeURIComponent(base64);
@@ -462,7 +509,7 @@
 						let bytes = new Uint8Array(this.data.length / 8);
 						let str = "";
 						for (let i = 0; i < this.data.length / 8; i++) {
-							let byte = binary.charCodeAt(i);
+							let byte = binary.charCodeAt(i) - i;
 							bytes[i] = byte;
 							let bits = byte.toString(2);
 							bits = bits.padStart(8, "0");
@@ -485,6 +532,11 @@
 				grid.clearGrid();
 			});
 		})();
+	</script>
+	<script src="clipboard.min.js"></script>
+	<script>
+		new ClipboardJS('.clipboard');
+		document.querySelector("#clipboard-input").value = window.location;
 	</script>
   </body>
 </html>
