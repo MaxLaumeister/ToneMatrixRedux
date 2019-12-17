@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=530, user-scalable=no">
+    <title>ToneMatrix Redux, a no-Flash pentatonic step sequencer</title>
+	<link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+	<link rel="canonical" href="https://www.maxlaumeister.com/tonematrix/">
+	<meta name="msapplication-TileColor" content="#000000">
+	<meta name="theme-color" content="#000000">
+	<style>
+		@font-face {
+			font-family: 'Montserrat';
+			src: url('montserrat-thin-webfont.woff2') format('woff2');
+			font-weight: 100;
+			font-style: normal;
+			font-display: block;
+		}
+	</style>
+	<link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+	<h1>ToneMatrix Redux</h1>
+	<p class="share-wrap">
+		Share Your Tone: <input readonly id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
+	</p>
+	<div class="canvaswrap">
+		<canvas width="500" height="500"></canvas>
+		<div class="overlay"></div>
+		<a class="play-btn" href="#"></a>
+	</div>
+	<p><a id="clearnotes" class="button" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a> - <a href="https://github.com/MaxLaumeister/ToneMatrixRedux">GitHub</a></p>
+	<script src="all.js"></script>
+  </body>
+</html>
