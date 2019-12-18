@@ -3,13 +3,25 @@
   <head>
     <meta charset="utf-8">
 	<meta name="viewport" content="width=530, user-scalable=no">
-    <title>ToneMatrix Redux - Pentatonic Step Sequencer</title>
+	<title>ToneMatrix Redux - Pentatonic Step Sequencer</title>
 	<meta name="description" content="Light up boxes and make music! No Flash plugin required.">
 	<meta name="author" content="Maximillian Laumeister">
 	<link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
 	<link rel="canonical" href="https://www.maxlaumeister.com/tonematrix/">
 	<meta name="msapplication-TileColor" content="#000000">
 	<meta name="theme-color" content="#000000">
+	<script>
+	// If there is no trailing slash after the path in the url, add it
+	// Workaround for Netlify trailing-slash rewrite issue
+	// https://community.netlify.com/t/bug-in-non-trailing-slash-rewrite/452/23
+	if (!window.location.pathname.endsWith('/') && !window.location.pathname.split("/").pop().includes(".")) {
+		var url = window.location.protocol + '//' +
+			window.location.host +
+			window.location.pathname + '/' +
+			window.location.search;
+			window.history.replaceState(null, document.title, url);
+	}
+	</script>
 	<style>
 		@font-face {
 			font-family: 'Montserrat';
