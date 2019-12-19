@@ -1,18 +1,21 @@
-const { src, dest, parallel, series, watch } = require('gulp');
+const {
+  src, dest, parallel, series, watch,
+} = require('gulp');
 
 const uglify = require('gulp-uglify-es').default;
 const browserSync = require('browser-sync').create();
 const del = require('del');
 const concat = require('gulp-concat');
 const sourcemaps = require('gulp-sourcemaps');
-const noop = require("gulp-noop");
+const noop = require('gulp-noop');
 const sass = require('gulp-sass');
 const jsdoc = require('gulp-jsdoc3');
 const eslint = require('gulp-eslint');
+const sassLint = require('gulp-sass-lint');
 
 function html() {
   return src('src/*.html')
-    .pipe(dest('dist'))
+    .pipe(dest('dist'));
 }
 
 function js(minify) {
@@ -20,67 +23,53 @@ function js(minify) {
     .pipe(sourcemaps.init())
     .pipe(minify ? uglify() : noop())
     .pipe(concat('all.js'))
-    .pipe(dest('dist', { sourcemaps: !minify }))
+    .pipe(dest('dist', { sourcemaps: !minify }));
 }
 
-function lint() {
-  return src(['src/*.js'])
-  .pipe(eslint({
-    configFile: '.eslintrc.js'
-  }))
-  .pipe(eslint.format())
+function jslint() {
+  return src(['*.js', 'src/*.js'])
+    .pipe(eslint({
+      configFile: '.eslintrc.js',
+    }))
+    .pipe(eslint.format());
+}
+
+function scsslint() {
+  return src(['src/*.scss'])
+    .pipe(sassLint())
+    .pipe(sassLint.format());
+}
+
+function lint(done) {
+  return parallel(jslint, scsslint)(done);
 }
 
 function jsmin() {
-	return js(true);
+  return js(true);
 }
 
 function jsconcat() {
-	return js(false);
+  return js(false);
 }
 
 function css(sourcemap) {
   return src('src/*.scss')
     .pipe(sourcemap ? sourcemaps.init() : noop())
     .pipe(sass())
-    .pipe(dest('dist', { sourcemaps: sourcemap }))
+    .pipe(dest('dist', { sourcemaps: sourcemap }));
 }
 
-function css_with_sourcemaps() {
-	return css(true);
+function cssWithSourcemaps() {
+  return css(true);
 }
 
-function css_without_sourcemaps() {
-	return css(false);
+function cssWithoutSourcemaps() {
+  return css(false);
 }
-	
 
 function staticdir() {
   return src('static/*')
-    .pipe(dest('dist'))
-}
-
-function dev(done) {
-    return parallel(html, css_with_sourcemaps, jsconcat, staticdir, lint, docs)(done);
-}
-
-function prod(done) {
-    return parallel(html, css_without_sourcemaps, jsmin, staticdir)(done);
-}
-
-function reload(done) {
-  browserSync.reload();
-  done();
-}
-
-function serve(done) {
-  browserSync.init({
-    browser: "chrome",
-	server: {
-        baseDir: "./dist"
-	}
- });
- done();
+    .pipe(dest('dist'));
 }
 
 function docs(done) {
@@ -88,9 +77,27 @@ function docs(done) {
     .pipe(jsdoc(done));
 }
 
+function dev(done) {
+  return parallel(html, cssWithSourcemaps, jsconcat, staticdir, lint, docs)(done);
+}
+
+function prod(done) {
+  return parallel(html, cssWithoutSourcemaps, jsmin, staticdir)(done);
+}
+
+function serve(done) {
+  browserSync.init({
+    browser: 'chrome',
+    server: {
+      baseDir: './dist',
+    },
+  });
+  done();
+}
+
 const clean = () => del(['dist']);
 
-const dowatch = () => watch(["lib","src","static"], series(dev /* , reload */));
+const dowatch = () => watch(['lib', 'src', 'static'], series(dev /* , reload */));
 
 exports.clean = clean;
 exports.dev = dev;

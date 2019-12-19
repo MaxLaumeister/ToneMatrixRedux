@@ -27,6 +27,7 @@ In any case, the compiled application will be in the `dist` folder.
 ## Useful tools
 
 * Install the `eslint` extension in VS Code by using the built-in extension browser. VS Code should automatically find the `.eslintrc.js` config file and start highlighting lines of js that fail the linter.
+* Likewise, you can install and use the `sass-lint` extension.
 
 ## TODO
 
