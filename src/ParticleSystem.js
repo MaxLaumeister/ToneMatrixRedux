@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 class ParticleSystem {
   /**
-     * Represents a particle system.
-     * @constructor
-     * @param {number} width - Height of the particle system, in pixels
-     * @param {number} height - Width of the particle system, in pixels
-     */
+   * Represents a particle system.
+   * @constructor
+   * @param {number} width - Height of the particle system, in pixels
+   * @param {number} height - Width of the particle system, in pixels
+   */
   constructor(width, height) {
     this.PARTICLE_POOL_SIZE = 200;
     this.PARTICLE_LIFETIME = 40;
@@ -23,12 +23,12 @@ class ParticleSystem {
   }
 
   /**
-     * Creates a new particle
-     * @param {number} x - Particle's x position, in pixels
-     * @param {number} y - Particle's y position, in pixels
-     * @param {number} vx - Particle's x velocity, in pixels per 1/60th of a second
-     * @param {number} vy - Particle's y velocity, in pixels per 1/60th of a second
-     */
+   * Creates a new particle
+   * @param {number} x - Particle's x position, in pixels
+   * @param {number} y - Particle's y position, in pixels
+   * @param {number} vx - Particle's x velocity, in pixels per 1/60th of a second
+   * @param {number} vy - Particle's y velocity, in pixels per 1/60th of a second
+   */
   createParticle(x, y, vx, vy) {
     const p = this.particles[this.oldestParticle];
     p.x = x;
@@ -41,9 +41,9 @@ class ParticleSystem {
   }
 
   /**
-     * Updates all particle positions based on their current position,
-     * velocity, and the amount of time that's passed.
-     */
+   * Updates all particle positions based on their current position,
+   * velocity, and the amount of time that's passed.
+   */
   tickParticles() {
     if (this.lastTick !== 0) {
       const now = Date.now();

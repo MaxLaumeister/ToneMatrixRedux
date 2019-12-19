@@ -5,40 +5,40 @@
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
-     * The entry point for ToneMatrix Redux, a pentatonic step sequencer
-     * @constructor
-     * @param {Element} canvasWrapperEl - The wrapper element that ToneMatrix should inject its
-     *    canvas into
-     * @param {Element} clearNotesButtonEl - A DOM element that should clear all notes when clicked
-     * @param {Element} clipboardInputEl - An HTML 'input' element for displaying level codes
-     * @param {Element} clipboardButtonEl - A DOM element that should copy the level code to the
-     *    clipboard when clicked
-     */
+   * The entry point for ToneMatrix Redux, a pentatonic step sequencer
+   * @constructor
+   * @param {Element} canvasWrapperEl - The wrapper element that ToneMatrix should inject its
+   *    canvas into
+   * @param {Element} clearNotesButtonEl - A DOM element that should clear all notes when clicked
+   * @param {Element} clipboardInputEl - An HTML 'input' element for displaying level codes
+   * @param {Element} clipboardButtonEl - A DOM element that should copy the level code to the
+   *    clipboard when clicked
+   */
   constructor(canvasWrapperEl, clearNotesButtonEl, clipboardInputEl, clipboardButtonEl) {
     this.DEBUG = false;
 
     /**
-         * The main canvas element that ToneMatrix draws to
-         * @type {Element}
-         */
+     * The main canvas element that ToneMatrix draws to
+     * @type {Element}
+     */
     this.c = document.createElement('canvas');
     this.c.width = 500;
     this.c.height = 500;
     canvasWrapperEl.appendChild(this.c);
     /**
-         * The main canvas element's 2d drawing context
-         * @type {CanvasRenderingContext2D}
-         */
+     * The main canvas element's 2d drawing context
+     * @type {CanvasRenderingContext2D}
+     */
     this.ctx = this.c.getContext('2d');
     /**
-         * The width of the grid, measured in grid tiles
-         * @const {number}
-         */
+     * The width of the grid, measured in grid tiles
+     * @const {number}
+     */
     this.WIDTH = 16;
     /**
-         * The height of the grid, measured in grid tiles
-         * @const {number}
-         */
+     * The height of the grid, measured in grid tiles
+     * @const {number}
+     */
     this.HEIGHT = 16;
     this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
 
@@ -47,9 +47,9 @@ class ToneMatrix {
     // Get the device pixel ratio, falling back to 1.
 
     /**
-         * The device pixel ratio of the current display
-         * @const {number}
-         */
+     * The device pixel ratio of the current display
+     * @const {number}
+     */
     this.DPR = window.devicePixelRatio || 1;
 
     // Get the size of the canvas in CSS pixels.
@@ -199,10 +199,10 @@ class ToneMatrix {
   }
 
   /**
-     * Get the app's sprite sheet.
-     * The sprite sheet is generated the first time this is called, then cached.
-     * @returns {Element} - The sprite sheet 'canvas' element
-     */
+   * Get the app's sprite sheet.
+   * The sprite sheet is generated the first time this is called, then cached.
+   * @returns {Element} - The sprite sheet 'canvas' element
+   */
   getSpriteSheet() {
     if (this.spriteSheet) return this.spriteSheet;
 
@@ -251,8 +251,8 @@ class ToneMatrix {
   }
 
   /**
-     * Clear all tiles and resets the sharing URL.
-     */
+   * Clear all tiles and resets the sharing URL.
+   */
   clearAllTiles() {
     this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
     Tone.Transport.cancel();
@@ -260,9 +260,9 @@ class ToneMatrix {
   }
 
   /**
-     * Write encoded data to the "Share URL" input element on the screen.
-     * @param {string} base64URLEncodedData - Base64, URL-encoded level savestate
-     */
+   * Write encoded data to the "Share URL" input element on the screen.
+   * @param {string} base64URLEncodedData - Base64, URL-encoded level savestate
+   */
   setSharingURL(base64URLEncodedData) {
     if (base64URLEncodedData) {
       const params = new URLSearchParams({ v: '1', d: base64URLEncodedData });
@@ -273,21 +273,21 @@ class ToneMatrix {
   }
 
   /**
-     * Get whether a grid tile is currently lit up (armed)
-     * @param {number} x - The x position, measured in grid tiles
-     * @param {number} y - The y position, measured in grid tiles
-     * @returns {bool} - Whether the tile is lit up
-     */
+   * Get whether a grid tile is currently lit up (armed)
+   * @param {number} x - The x position, measured in grid tiles
+   * @param {number} y - The y position, measured in grid tiles
+   * @returns {bool} - Whether the tile is lit up
+   */
   getTileValue(x, y) {
     return this.data[x * this.WIDTH + y] !== false;
   }
 
   /**
-     * Set whether a grid tile is currently lit up (armed)
-     * @param {number} x - The x position, measured in grid tiles
-     * @param {number} y - The y position, measured in grid tiles
-     * @param {bool} - Whether the tile should be turned on (true) or off (false)
-     */
+   * Set whether a grid tile is currently lit up (armed)
+   * @param {number} x - The x position, measured in grid tiles
+   * @param {number} y - The y position, measured in grid tiles
+   * @param {bool} - Whether the tile should be turned on (true) or off (false)
+   */
   setTileValue(x, y, bool) {
     if (bool) {
       if (this.getTileValue(x, y)) return;
@@ -315,18 +315,18 @@ class ToneMatrix {
   }
 
   /**
-     * Toggle whether a grid tile is currently lit up (armed)
-     * @param {number} x - The x position, measured in grid tiles
-     * @param {number} y - The y position, measured in grid tiles
-     */
+   * Toggle whether a grid tile is currently lit up (armed)
+   * @param {number} x - The x position, measured in grid tiles
+   * @param {number} y - The y position, measured in grid tiles
+   */
   toggleTileValue(x, y) {
     this.setTileValue(x, y, !this.getTileValue(x, y));
   }
 
   /**
-     * Draw the current state of the app to the canvas element.
-     * This is run in a loop.
-     */
+   * Draw the current state of the app to the canvas element.
+   * This is run in a loop.
+   */
   draw() {
     // Defaults
     this.ctx.globalAlpha = 1;
@@ -384,12 +384,12 @@ class ToneMatrix {
   }
 
   /**
-     * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
-     * @param {number} x - The x position on the canvas, measured in pixels
-     * @param {number} y - The y position on the canvas, measured in pixels
-     * @returns {number} x - The x position on the grid, measured in grid tiles
-     * @returns {number} y - The y position on the grid, measured in grid tiles
-     */
+   * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
+   * @param {number} x - The x position on the canvas, measured in pixels
+   * @param {number} y - The y position on the canvas, measured in pixels
+   * @returns {number} x - The x position on the grid, measured in grid tiles
+   * @returns {number} y - The y position on the grid, measured in grid tiles
+   */
   getTileCollision(x, y) {
     const dx = this.c.height / this.HEIGHT;
     const dy = this.c.width / this.WIDTH;
@@ -407,12 +407,12 @@ class ToneMatrix {
   }
 
   /**
-     * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
-     * @param {number} x - The x position on the canvas, measured in pixels
-     * @param {number} y - The y position on the canvas, measured in pixels
-     * @returns {number} x - The x position on the grid, measured in grid tiles
-     * @returns {number} y - The y position on the grid, measured in grid tiles
-     */
+   * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
+   * @param {number} x - The x position on the canvas, measured in pixels
+   * @param {number} y - The y position on the canvas, measured in pixels
+   * @returns {number} x - The x position on the grid, measured in grid tiles
+   * @returns {number} y - The y position on the grid, measured in grid tiles
+   */
   getParticleHeatMap() {
     const heatmap = Array(this.WIDTH * this.HEIGHT).fill(0);
     const ps = this.particleSystem;
@@ -425,9 +425,9 @@ class ToneMatrix {
   }
 
   /**
-     * Save the app's current state into a savestate string
-     * @returns {string} savestate - The savestate string, ready for saving or outputting in a URL
-     */
+   * Save the app's current state into a savestate string
+   * @returns {string} savestate - The savestate string, ready for saving or outputting in a URL
+   */
   gridToBase64() {
     let dataflag = false;
     const bytes = new Uint8Array(this.data.length / 8);
@@ -457,9 +457,9 @@ class ToneMatrix {
   }
 
   /**
-     * Load a savestate from a string into the app
-     * @param {string} savestate - The base64-encoded URL-encoded savestate string
-     */
+   * Load a savestate from a string into the app
+   * @param {string} savestate - The base64-encoded URL-encoded savestate string
+   */
   base64ToGrid(base64enc) {
     try {
       const base64 = decodeURIComponent(base64enc);
@@ -484,4 +484,4 @@ class ToneMatrix {
     }
   }
 }
-window.ToneMatrix = ToneMatrix;
+export default ToneMatrix;
