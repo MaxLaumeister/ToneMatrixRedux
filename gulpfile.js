@@ -61,7 +61,7 @@ function staticdir() {
 }
 
 function dev(done) {
-    return parallel(html, css_with_sourcemaps, jsconcat, staticdir, docs)(done);
+    return parallel(html, css_with_sourcemaps, jsconcat, staticdir, lint, docs)(done);
 }
 
 function prod(done) {
