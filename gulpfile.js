@@ -21,8 +21,8 @@ function html() {
 function js(minify) {
   return src(['lib/*.js', 'src/*.js'])
     .pipe(sourcemaps.init())
-    .pipe(minify ? uglify() : noop())
     .pipe(concat('all.js'))
+    .pipe(minify ? uglify() : noop())
     .pipe(dest('dist', { sourcemaps: !minify }));
 }
 
