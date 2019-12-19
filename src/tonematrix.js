@@ -75,7 +75,7 @@
 	
 	class ToneMatrix {
 		/**
-		 * The entry point for ToneMatrix
+		 * The entry point for ToneMatrix Redux, a pentatonic step sequencer
 		 * @constructor
 		 * @param {Element} canvasWrapperEl - The wrapper element that ToneMatrix should inject its canvas into
 		 * @param {Element} clearNotesButtonEl - A DOM element that should clear all notes when clicked
@@ -145,10 +145,10 @@
 			const data = urlParams.get('d');
 			if(data) {
 				this.base64ToGrid(data);
-				this.setCopyURL(data);
+				this.setSharingURL(data);
 				history.replaceState("", document.title, window.location.pathname);
 			} else {
-				this.setCopyURL("");
+				this.setSharingURL("");
 			}
 
 			// Listen for clicks on the canvas
@@ -169,7 +169,7 @@
 				this.setTileValue(tile.x, tile.y, arming);
 				// Update URL fragment
 				let base64 = this.gridToBase64();
-				this.setCopyURL(base64);
+				this.setSharingURL(base64);
 			}
 			this.c.addEventListener('mousemove', (function(e) {
 				if (e.buttons !== 1) return; // Only if left button is held
@@ -267,13 +267,11 @@
 		}
 
 		/**
-		 * Singleton - draws and returns a sprite sheet the first time it's called.
-		 * For subsequent calls, returns the cached sprite sheet.
+		 * Get the app's sprite sheet.
+		 * The sprite sheet is generated the first time this is called, then cached.
 		 * @returns {Element} - The sprite sheet 'canvas' element
 		 */
 		getSpriteSheet() {
-			// 
-			
 			if (this.spriteSheet) return this.spriteSheet;
 			
 			let ss = document.createElement('canvas');
@@ -320,25 +318,44 @@
 			return ss;
 		}
 		
+		/**
+		 * Clear all tiles and resets the sharing URL.
+		 */
 		clearAllTiles() {
 			this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
 			Tone.Transport.cancel();
-			this.setCopyURL(""); // get rid of hash
+			this.setSharingURL(""); // get rid of hash
 		}
 		
-		setCopyURL(data) {
-			if (data) {
-				let params = new URLSearchParams({v: "1", d: data});
+		/**
+		 * Write encoded data to the "Share URL" input element on the screen.
+		 * @param {string} base64URLEncodedData - Base64, URL-encoded level savestate
+		 */
+		setSharingURL(base64URLEncodedData) {
+			if (base64URLEncodedData) {
+				let params = new URLSearchParams({v: "1", d: base64URLEncodedData});
 				this.clipboardInputEl.value = this.originalURL + "?" + params;
 			} else {
 				this.clipboardInputEl.value = this.originalURL;
 			}
 		}
 
+		/**
+		 * Get whether a grid tile is currently lit up (armed)
+		 * @param {number} x - The x position, measured in grid tiles
+		 * @param {number} y - The y position, measured in grid tiles
+		 * @returns {bool} - Whether the tile is lit up
+		 */
 		getTileValue(x, y) {
 			return this.data[x * this.WIDTH + y] !== false;
 		}
 
+		/**
+		 * Set whether a grid tile is currently lit up (armed)
+		 * @param {number} x - The x position, measured in grid tiles
+		 * @param {number} y - The y position, measured in grid tiles
+		 * @param {bool} - Whether the tile should be turned on (true) or off (false)
+		 */
 		setTileValue(x, y, bool) {
 			if (bool) {
 				if (this.getTileValue(x, y)) return;
@@ -366,10 +383,19 @@
 			}
 		}
 
+		/**
+		 * Toggle whether a grid tile is currently lit up (armed)
+		 * @param {number} x - The x position, measured in grid tiles
+		 * @param {number} y - The y position, measured in grid tiles
+		 */
 		toggleTileValue(x, y) {
 			this.setTileValue(x, y, !this.getTileValue(x, y));
 		}
 	  
+		/**
+		 * Draw the current state of the app to the canvas element.
+		 * This is run in a loop.
+		 */
 		draw() {
 			// Defaults
 			this.ctx.globalAlpha = 1;
@@ -426,6 +452,13 @@
 			}
 		}
 		
+		/**
+		 * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
+		 * @param {number} x - The x position on the canvas, measured in pixels
+		 * @param {number} y - The y position on the canvas, measured in pixels
+		 * @returns {number} x - The x position on the grid, measured in grid tiles
+		 * @returns {number} y - The y position on the grid, measured in grid tiles
+		 */
 		getTileCollision(x, y) {
 			let dx, dy;
 			dx = dy = this.c.width / this.WIDTH;
@@ -442,6 +475,13 @@
 			return {x: xCoord, y: yCoord};
 		}
 		
+		/**
+		 * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
+		 * @param {number} x - The x position on the canvas, measured in pixels
+		 * @param {number} y - The y position on the canvas, measured in pixels
+		 * @returns {number} x - The x position on the grid, measured in grid tiles
+		 * @returns {number} y - The y position on the grid, measured in grid tiles
+		 */
 		getParticleHeatMap() {
 			let heatmap = Array(this.WIDTH * this.HEIGHT).fill(0);
 			let ps = this.particleSystem;
@@ -453,6 +493,10 @@
 			return heatmap;
 		}
 		
+		/**
+		 * Save the app's current state into a savestate string
+		 * @returns {string} savestate - The savestate string, ready for saving or outputting in a URL
+		 */
 		gridToBase64() {
 			let dataflag = false;
 			let bytes = new Uint8Array(this.data.length / 8);
@@ -481,6 +525,10 @@
 			return base64enc;
 		}
 		
+		/**
+		 * Load a savestate from a string into the app
+		 * @param {string} savestate - The base64-encoded URL-encoded savestate string
+		 */
 		base64ToGrid(base64enc) {
 			try {
 				let base64 = decodeURIComponent(base64enc);

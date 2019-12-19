@@ -8,6 +8,7 @@ const sourcemaps = require('gulp-sourcemaps');
 const noop = require("gulp-noop");
 const sass = require('gulp-sass');
 const jsdoc = require('gulp-jsdoc3');
+const eslint = require('gulp-eslint');
 
 function html() {
   return src('src/*.html')
@@ -20,6 +21,14 @@ function js(minify) {
     .pipe(minify ? uglify() : noop())
     .pipe(concat('all.js'))
     .pipe(dest('dist', { sourcemaps: !minify }))
+}
+
+function lint() {
+  return src(['src/*.js'])
+  .pipe(eslint({
+    configFile: '.eslintrc.js'
+  }))
+  .pipe(eslint.format())
 }
 
 function jsmin() {
@@ -86,5 +95,6 @@ const dowatch = () => watch(["lib","src","static"], series(dev /* , reload */));
 exports.clean = clean;
 exports.dev = dev;
 exports.prod = prod;
+exports.lint = lint;
 exports.serve = series(clean, dev, serve, dowatch);
 exports.docs = docs;

@@ -16,9 +16,9 @@ Click on the boxes and make music! This project is an HTML5 revival of [ToneMatr
 
 ### Compilation
 
-* To compile for development, run `gulp dev`.
+* To compile for development and generate docs, run `gulp dev`.
 
-* To compile for development, start a localhost server, and auto-recompile changes in source files, run `gulp serve`.
+* To compile for development and generate docs, start a localhost server, and auto-recompile changes in source files, run `gulp serve`.
 
 * To compile for production (minified, without source maps), run `gulp prod`.
 
