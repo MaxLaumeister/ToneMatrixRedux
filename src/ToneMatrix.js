@@ -1,7 +1,7 @@
 /* global ClipboardJS */
 /* global Tone */
 /* global ParticleSystem */
-/* global roundRect */
+/* global Util */
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
@@ -228,7 +228,7 @@ class ToneMatrix {
     x = 0;
     y = 0;
     ssctx.filter = 'none';
-    roundRect(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
+    Util.drawRoundedRectangle(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
 
     // Draw rectangle 2 - armed white rectangle
 
@@ -236,7 +236,7 @@ class ToneMatrix {
     x = dx;
     y = 0;
     ssctx.filter = `blur(${this.DPR}px)`;
-    roundRect(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
+    Util.drawRoundedRectangle(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
 
     // Draw rectangle 3 - activated white rectangle
 
@@ -244,7 +244,7 @@ class ToneMatrix {
     x = 2 * dx;
     y = 0;
     ssctx.filter = `blur(${this.DPR * 2}px)`;
-    roundRect(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
+    Util.drawRoundedRectangle(ssctx, x + margin, y + margin, dx - 2 * margin, dy - 2 * margin, 2, true, false);
 
     this.spriteSheet = ss;
     return ss;
@@ -484,4 +484,3 @@ class ToneMatrix {
     }
   }
 }
-export default ToneMatrix;
