@@ -2,12 +2,16 @@
   user-select: none;
 }
 
+html {
+  height: 100%;
+}
+
 html,
 body {
   background: #000000;
   font-family: Arial, sans-serif;
-  height: 100%;
   margin: 0;
+  min-height: 100%;
   width: 100%;
 }
 
