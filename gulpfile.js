@@ -7,6 +7,7 @@ const concat = require('gulp-concat');
 const sourcemaps = require('gulp-sourcemaps');
 const noop = require("gulp-noop");
 const sass = require('gulp-sass');
+const jsdoc = require('gulp-jsdoc3');
 
 function html() {
   return src('src/*.html')
@@ -51,7 +52,7 @@ function staticdir() {
 }
 
 function dev(done) {
-    return parallel(html, css_with_sourcemaps, jsconcat, staticdir)(done);
+    return parallel(html, css_with_sourcemaps, jsconcat, staticdir, docs)(done);
 }
 
 function prod(done) {
@@ -73,6 +74,11 @@ function serve(done) {
  done();
 }
 
+function docs(done) {
+  return src(['README.md', './src/*.js'])
+    .pipe(jsdoc(done));
+}
+
 const clean = () => del(['dist']);
 
 const dowatch = () => watch(["lib","src","static"], series(dev /* , reload */));
@@ -81,3 +87,4 @@ exports.clean = clean;
 exports.dev = dev;
 exports.prod = prod;
 exports.serve = series(clean, dev, serve, dowatch);
+exports.docs = docs;

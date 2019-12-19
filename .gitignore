@@ -2,6 +2,10 @@
 
 dist/
 
+# Docs folder
+
+docs/
+
 # Logs
 logs
 *.log

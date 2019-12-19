@@ -36,14 +36,16 @@
   <body>
 	<h1>ToneMatrix Redux</h1>
 	<p class="share-wrap">
-		Share Your Tone: <input readonly id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
+		Share URL: <input readonly id="clipboard-input"><button class="clipboard" data-clipboard-target="#clipboard-input"><img class="icon" src="clippy.svg" alt="Copy to clipboard"></button>
 	</p>
 	<div class="canvaswrap">
-		<canvas width="500" height="500"></canvas>
 		<div class="overlay"></div>
 		<a class="play-btn" href="#"></a>
 	</div>
 	<p><a id="clearnotes" class="button" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a></p>
 	<script src="all.js"></script>
+	<script>
+		new ToneMatrix(document.querySelector(".canvaswrap"), document.querySelector("#clearnotes"), document.querySelector("#clipboard-input"), document.querySelector(".clipboard"));
+	</script>
   </body>
 </html>

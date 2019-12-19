@@ -26,4 +26,4 @@ In any case, the compiled application will be in the `dist` folder.
 
 ## TODO
 
-* Fix crackling on mobile - set tone.js latency
+See [Issues](https://github.com/MaxLaumeister/ToneMatrixRedux/issues).
