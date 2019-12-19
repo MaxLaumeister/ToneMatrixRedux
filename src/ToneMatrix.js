@@ -73,18 +73,6 @@ class ToneMatrix {
     // eslint-disable-next-line no-new
     new ClipboardJS(clipboardButtonEl);
 
-    // Load tune from search string, then remove it
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const data = urlParams.get('d');
-    if (data) {
-      this.base64ToGrid(data);
-      this.setSharingURL(data);
-      window.history.replaceState('', document.title, window.location.pathname);
-    } else {
-      this.setSharingURL('');
-    }
-
     // Listen for clicks on the canvas
 
     let arming = null;
@@ -185,6 +173,18 @@ class ToneMatrix {
       });
     } else {
       document.body.classList.add('playing');
+    }
+
+    // Load tune from search string, then remove search string
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = urlParams.get('d');
+    if (data) {
+      this.base64ToGrid(data);
+      this.setSharingURL(data);
+      window.history.replaceState('', document.title, window.location.pathname);
+    } else {
+      this.setSharingURL('');
     }
 
     // Kick off drawing loop
