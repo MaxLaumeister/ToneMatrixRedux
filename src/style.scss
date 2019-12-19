@@ -107,10 +107,11 @@ body:not(.playing) {
     overflow: hidden;
     pointer-events: none;
   }
-  
+
   .canvaswrap {
     border: solid #444 1px;
   }
+
   .play-btn {
     background: radial-gradient(rgba(255, 0, 128, 0.8) 60%, rgba(255, 255, 255, 1) 62%);
     border-radius: 50%;
@@ -158,20 +159,6 @@ body:not(.playing) {
       top: -35%; // it's magic! :O
       width: 150%;
     }
-  }
-}
-
-@-webkit-keyframes pulsate1 {
-  0% {
-    box-shadow: inset 0 0 25px 3px rgba(255, 255, 255, 0.75), 0 0 25px 10px rgba(255, 255, 255, 0.75);
-    opacity: 1;
-    transform: scale(.6);
-  }
-
-  100% {
-    box-shadow: none;
-    opacity: 0;
-    transform: scale(1);
   }
 }
 
