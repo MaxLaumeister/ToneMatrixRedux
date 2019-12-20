@@ -105,11 +105,11 @@ class ToneMatrix {
       if (e.touches.length === 1) {
         arming = null;
       }
-      e.touches.forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
     });
     this.c.addEventListener('touchmove', (e) => {
       e.preventDefault(); // Prevent emulated click
-      e.touches.forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
     });
 
     // Construct scale array
