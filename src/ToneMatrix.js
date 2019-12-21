@@ -356,11 +356,8 @@ class ToneMatrix {
   }
 
   /**
-   * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
-   * @param {number} x - The x position on the canvas, measured in pixels
-   * @param {number} y - The y position on the canvas, measured in pixels
-   * @returns {number} x - The x position on the grid, measured in grid tiles
-   * @returns {number} y - The y position on the grid, measured in grid tiles
+   * Gets the "heat" of every tile by calculating how many particles are on top of the tile
+   * @returns {array} An array of numbers from 0 to 1, representing the "heat" of each tile
    */
   getParticleHeatMap() {
     const heatmap = Array(this.WIDTH * this.HEIGHT).fill(0);
@@ -375,7 +372,8 @@ class ToneMatrix {
 
   /**
    * Save the app's current state into a savestate string
-   * @returns {string} savestate - The savestate string, ready for saving or outputting in a URL
+   * @returns {string} savestate - The base64-encoded URL-encoded savestate string,
+   *   ready for saving or outputting in a URL
    */
   gridToBase64() {
     let dataflag = false;
