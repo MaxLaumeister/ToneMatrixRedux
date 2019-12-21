@@ -360,10 +360,10 @@ class ToneMatrix {
       if (on) {
         if (gridx === playheadx) {
           this.ctx.globalAlpha = 1;
-          this.ctx.drawImage(this.spriteSheet, dx * 2, 0, dx, dy, x, y, dx, dy);
+          this.ctx.drawImage(this.getSpriteSheet(), dx * 2, 0, dx, dy, x, y, dx, dy);
         } else {
           this.ctx.globalAlpha = 0.85;
-          this.ctx.drawImage(this.spriteSheet, dx, 0, dx, dy, x, y, dx, dy);
+          this.ctx.drawImage(this.getSpriteSheet(), dx, 0, dx, dy, x, y, dx, dy);
         }
       } else {
         const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
