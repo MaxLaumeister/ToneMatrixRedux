@@ -2,6 +2,7 @@
 /* global Tone */
 /* global ParticleSystem */
 /* global SpriteSheet */
+/* global NotePlayer */
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
@@ -108,77 +109,15 @@ class ToneMatrix {
       Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
     });
 
-    // Construct scale array
-
-    const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
-    const octave = 3; // base octave
-    const octaveoffset = 4;
-    this.scale = Array(this.HEIGHT);
-    for (let i = 0; i < this.HEIGHT; i += 1) {
-      this.scale[i] = pentatonic[i % pentatonic.length]
-        + (octave + Math.floor((i + octaveoffset) / pentatonic.length));
-    }
-    this.scale = this.scale.reverse(); // higher notes at lower y values, near the top
-
-    // Init synth
-
-    const lowPass = new Tone.Filter({
-      frequency: 1100,
-      rolloff: -12,
-    }).toMaster();
-
-    this.synth = new Tone.PolySynth(16, Tone.Synth, {
-      oscillator: {
-        type: 'sine',
-      },
-      envelope: {
-        attack: 0.005,
-        decay: 0.1,
-        sustain: 0.3,
-        release: 1,
-      },
-    }).connect(lowPass);
-
-    this.synth.volume.value = -10;
-
     this.SYNTHLATENCY = 0.25; // Queue events ahead of time
     Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
     Tone.Transport.toggle(); // start
 
-    // Pre-render synth
+    // Start audio system
 
-    const width = this.WIDTH;
-    this.players = [];
-    let players = this.players;
-    this.scale.forEach((el) => {
-      console.log(el);
-      Tone.Offline(() => {
-        const lowPass = new Tone.Filter({
-          frequency: 1100,
-          rolloff: -12,
-        }).toMaster();
-
-        const synth = new Tone.PolySynth(16, Tone.Synth, {
-          oscillator: {
-            type: 'sine',
-          },
-          envelope: {
-            attack: 0.005,
-            decay: 0.1,
-            sustain: 0.3,
-            release: 1,
-          },
-        }).connect(lowPass);
-
-        synth.volume.value = -10;
-        synth.triggerAttackRelease(el, Tone.Time('1m') / width, 0);
-      }, Tone.Time('1m')).then((buffer) => {
-        players.push(new Tone.Player(buffer).toMaster());
-        console.log(players);
-      });
-    });
+    this.notePlayer = new NotePlayer(this.WIDTH, this.HEIGHT);
 
     // Init particle system
 
@@ -279,7 +218,7 @@ class ToneMatrix {
       // Turning on, schedule note
       this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
         //this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
-        this.players[y].start(time);
+        this.notePlayer.play(y, time);
       }, (Tone.Time('1m') / this.WIDTH) * x);
     } else {
       if (!this.getTileValue(x, y)) return;
