@@ -1,7 +1,7 @@
 /* global ClipboardJS */
 /* global Tone */
 /* global ParticleSystem */
-/* global Util */
+/* global SpriteSheet */
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
@@ -41,10 +41,6 @@ class ToneMatrix {
      */
     this.HEIGHT = 16;
     this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
-
-    // Resize canvas for hidpi display, if needed
-
-    // Get the device pixel ratio, falling back to 1.
 
     /**
      * The device pixel ratio of the current display
@@ -187,6 +183,11 @@ class ToneMatrix {
       this.setSharingURL('');
     }
 
+    // Create sprite sheet
+
+    this.spriteSheet = new SpriteSheet(this.c.width, this.c.height,
+      this.WIDTH, this.HEIGHT, this.DPR);
+
     // Kick off drawing loop
 
     const drawContinuous = (function drawContinuousUnbound() {
@@ -196,61 +197,6 @@ class ToneMatrix {
     }).bind(this);
 
     drawContinuous();
-  }
-
-  /**
-   * Get the app's sprite sheet.
-   * The sprite sheet is generated the first time this is called, then cached.
-   * @returns {Element} - The sprite sheet 'canvas' element
-   */
-  getSpriteSheet() {
-    if (this.spriteSheet) return this.spriteSheet;
-
-    const ss = document.createElement('canvas');
-    const ssctx = ss.getContext('2d');
-    const tileWidth = this.c.width / this.WIDTH;
-    const tileHeight = this.c.height / this.HEIGHT;
-    ss.width = 3 * tileWidth; // 3 rectangles
-    ss.height = tileHeight;
-
-    // For all rectangles
-
-    let margin;
-    let x;
-    let y;
-    const dx = this.c.width / this.WIDTH;
-    const dy = this.c.height / this.HEIGHT;
-    ssctx.fillStyle = '#fff';
-
-    // Draw rectangle 1 - unarmed white rectangle
-
-    margin = 4 * this.DPR;
-    x = 0;
-    y = 0;
-    ssctx.filter = 'none';
-    Util.drawRoundedRectangle(ssctx, x + margin, y + margin,
-      dx - 2 * margin, dy - 2 * margin, 2, true, false);
-
-    // Draw rectangle 2 - armed white rectangle
-
-    margin = 3 * this.DPR;
-    x = dx;
-    y = 0;
-    ssctx.filter = `blur(${this.DPR}px)`;
-    Util.drawRoundedRectangle(ssctx, x + margin, y + margin,
-      dx - 2 * margin, dy - 2 * margin, 2, true, false);
-
-    // Draw rectangle 3 - activated white rectangle
-
-    margin = 2 * this.DPR;
-    x = 2 * dx;
-    y = 0;
-    ssctx.filter = `blur(${this.DPR * 2}px)`;
-    Util.drawRoundedRectangle(ssctx, x + margin, y + margin,
-      dx - 2 * margin, dy - 2 * margin, 2, true, false);
-
-    this.spriteSheet = ss;
-    return ss;
   }
 
   /**
@@ -360,16 +306,16 @@ class ToneMatrix {
       if (on) {
         if (gridx === playheadx) {
           this.ctx.globalAlpha = 1;
-          this.ctx.drawImage(this.getSpriteSheet(), dx * 2, 0, dx, dy, x, y, dx, dy);
+          this.ctx.drawImage(this.spriteSheet.get(), dx * 2, 0, dx, dy, x, y, dx, dy);
         } else {
           this.ctx.globalAlpha = 0.85;
-          this.ctx.drawImage(this.getSpriteSheet(), dx, 0, dx, dy, x, y, dx, dy);
+          this.ctx.drawImage(this.spriteSheet.get(), dx, 0, dx, dy, x, y, dx, dy);
         }
       } else {
         const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
         this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
             / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
-        this.ctx.drawImage(this.getSpriteSheet(), 0, 0, dx, dy, x, y, dx, dy);
+        this.ctx.drawImage(this.spriteSheet.get(), 0, 0, dx, dy, x, y, dx, dy);
       }
     }
 
