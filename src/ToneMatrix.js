@@ -147,6 +147,39 @@ class ToneMatrix {
     Tone.Transport.loop = true;
     Tone.Transport.toggle(); // start
 
+    // Pre-render synth
+
+    const width = this.WIDTH;
+    this.players = [];
+    let players = this.players;
+    this.scale.forEach((el) => {
+      console.log(el);
+      Tone.Offline(() => {
+        const lowPass = new Tone.Filter({
+          frequency: 1100,
+          rolloff: -12,
+        }).toMaster();
+
+        const synth = new Tone.PolySynth(16, Tone.Synth, {
+          oscillator: {
+            type: 'sine',
+          },
+          envelope: {
+            attack: 0.005,
+            decay: 0.1,
+            sustain: 0.3,
+            release: 1,
+          },
+        }).connect(lowPass);
+
+        synth.volume.value = -10;
+        synth.triggerAttackRelease(el, Tone.Time('1m') / width, 0);
+      }, Tone.Time('1m')).then((buffer) => {
+        players.push(new Tone.Player(buffer).toMaster());
+        console.log(players);
+      });
+    });
+
     // Init particle system
 
     this.particleSystem = new ParticleSystem(this.c.width, this.c.height);
@@ -245,7 +278,8 @@ class ToneMatrix {
       Tone.context.resume();
       // Turning on, schedule note
       this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
-        this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
+        //this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
+        this.players[y].start(time);
       }, (Tone.Time('1m') / this.WIDTH) * x);
     } else {
       if (!this.getTileValue(x, y)) return;
