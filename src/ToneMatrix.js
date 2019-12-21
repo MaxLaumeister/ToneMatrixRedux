@@ -141,7 +141,8 @@ class ToneMatrix {
 
     this.synth.volume.value = -10;
 
-    Tone.context.latencyHint = 'balanced'; // Queue events ahead of time
+    this.SYNTHLATENCY = 0.25; // Queue events ahead of time
+    Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
     Tone.Transport.toggle(); // start
@@ -245,15 +246,6 @@ class ToneMatrix {
       // Turning on, schedule note
       this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
         this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
-        const px = (this.c.width / this.WIDTH) * (x + 0.5);
-        const py = (this.c.height / this.HEIGHT) * (y + 0.5);
-        const velocityscalar = 10 * this.DPR;
-        const numparticles = 20;
-        for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI) / numparticles) {
-          const pvx = Math.cos(i) * velocityscalar;
-          const pvy = Math.sin(i) * velocityscalar;
-          this.particleSystem.createParticle(px, py, pvx, pvy);
-        }
       }, (Tone.Time('1m') / this.WIDTH) * x);
     } else {
       if (!this.getTileValue(x, y)) return;
@@ -274,7 +266,7 @@ class ToneMatrix {
 
   /**
    * Draw the current state of the app to the canvas element.
-   * This is run in a loop.
+   * This is looped asynchronously via requestAnimationFrame.
    */
   draw() {
     // Defaults
@@ -290,6 +282,15 @@ class ToneMatrix {
 
     const heatmap = this.getParticleHeatMap();
 
+    // Progress, adjusted for the latency hint
+    function positivemod(n, m) {
+      return ((n % m) + m) % m;
+    }
+    const adjustedSeconds = positivemod((Tone.Transport.seconds - this.SYNTHLATENCY),
+      (Tone.Transport.loopEnd - Tone.Transport.loopStart));
+    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
+
+    const playheadx = Math.floor(adjustedProgress * this.WIDTH);
     // Draw each tile
     for (let i = 0; i < this.data.length; i += 1) {
       const dx = this.c.height / this.HEIGHT;
@@ -301,12 +302,20 @@ class ToneMatrix {
 
       const on = this.getTileValue(gridx, gridy);
 
-      const playheadx = Math.floor(Tone.Transport.progress * this.WIDTH);
-
       if (on) {
         if (gridx === playheadx) {
           this.ctx.globalAlpha = 1;
           this.ctx.drawImage(this.spriteSheet.get(), dx * 2, 0, dx, dy, x, y, dx, dy);
+          // Create particles
+          const px = dx * (gridx + 0.5);
+          const py = dy * (gridy + 0.5);
+          const velocityscalar = 10 * this.DPR;
+          const numparticles = 20;
+          for (let j = 0; j < 2 * Math.PI; j += (2 * Math.PI) / numparticles) {
+            const pvx = Math.cos(j) * velocityscalar;
+            const pvy = Math.sin(j) * velocityscalar;
+            this.particleSystem.createParticle(px, py, pvx, pvy);
+          }
         } else {
           this.ctx.globalAlpha = 0.85;
           this.ctx.drawImage(this.spriteSheet.get(), dx, 0, dx, dy, x, y, dx, dy);
