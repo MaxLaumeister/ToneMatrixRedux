@@ -15,6 +15,8 @@ class NotePlayer {
 
     // Pre-render synth
 
+    this.numVoices = 3; // Number of voices (players) *per note*
+
     this.players = [];
     // eslint-disable-next-line prefer-destructuring
     const players = this.players;
@@ -40,12 +42,19 @@ class NotePlayer {
         synth.volume.value = -10;
         synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, 0);
       }, Tone.Time('1m')).then((buffer) => {
-        players.push(new Tone.Player(buffer).toMaster());
+        const voices = [];
+        for (let i = 0; i < this.numVoices; i += 1) {
+          voices.push(new Tone.Player(buffer).toMaster());
+        }
+        players.push({ voices, currentVoice: 0 });
       });
     });
   }
 
   play(index, time) {
-    this.players[index].start(time);
+    // Cycle through the note's voices
+    const player = this.players[index];
+    player.voices[player.currentVoice].start(time);
+    player.currentVoice = (player.currentVoice + 1) % this.numVoices;
   }
 }
