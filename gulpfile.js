@@ -91,6 +91,7 @@ function serve(done) {
     server: {
       baseDir: './dist',
     },
+    ghostMode: false,
   });
   done();
 }

@@ -20,7 +20,9 @@ class NotePlayer {
     this.players = [];
     // eslint-disable-next-line prefer-destructuring
     const players = this.players;
-    scale.forEach((el) => {
+    console.log(scale);
+    scale.forEach((el, idx) => {
+      console.log(el, idx);
       Tone.Offline(() => {
         const lowPass = new Tone.Filter({
           frequency: 1100,
@@ -38,23 +40,27 @@ class NotePlayer {
             release: 1,
           },
         }).connect(lowPass);
-
-        synth.volume.value = -10;
         synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, 0);
-      }, Tone.Time('1m')).then((buffer) => {
+      }, (Tone.Time('1m') / gridWidth) * 6).then((buffer) => {
+        console.log(buffer);
         const voices = [];
         for (let i = 0; i < this.numVoices; i += 1) {
           voices.push(new Tone.Player(buffer).toMaster());
         }
-        players.push({ voices, currentVoice: 0 });
+        players[idx] = ({ voices, currentVoice: 0 });
       });
     });
   }
 
-  play(index, time) {
+  play(index, time, volume) {
     // Cycle through the note's voices
-    const player = this.players[index];
-    player.voices[player.currentVoice].start(time);
-    player.currentVoice = (player.currentVoice + 1) % this.numVoices;
+    const note = this.players[index];
+    try {
+      note.voices[note.currentVoice].volume.setValueAtTime(volume, time);
+      note.voices[note.currentVoice].start(time);
+      note.currentVoice = (note.currentVoice + 1) % this.numVoices;
+    } catch (e) {
+      // Player not ready yet
+    }
   }
 }

@@ -216,9 +216,15 @@ class ToneMatrix {
       // Make sure AudioContext has started
       Tone.context.resume();
       // Turning on, schedule note
+
+      const highVolume = -10; // When one note is playing
+      const lowVolume = -35; // When all notes are playing (lower volume to prevent peaking)
+
+      const volume = ((this.HEIGHT - this.countNotesInColumn(x)) / this.HEIGHT)
+        * (highVolume - lowVolume) + lowVolume;
+
       this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
-        //this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
-        this.notePlayer.play(y, time);
+        this.notePlayer.play(y, time, volume);
       }, (Tone.Time('1m') / this.WIDTH) * x);
     } else {
       if (!this.getTileValue(x, y)) return;
@@ -226,6 +232,14 @@ class ToneMatrix {
       Tone.Transport.clear(this.data[x * this.WIDTH + y]);
       this.data[x * this.WIDTH + y] = false;
     }
+  }
+
+  countNotesInColumn(x) {
+    let count = 0;
+    for (let i = 0; i < this.HEIGHT; i += 1) {
+      if (this.getTileValue(x, i)) count += 1;
+    }
+    return count;
   }
 
   /**

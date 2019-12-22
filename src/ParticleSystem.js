@@ -7,7 +7,7 @@ class ParticleSystem {
    * @param {number} height - Width of the particle system, in pixels
    */
   constructor(width, height) {
-    this.PARTICLE_POOL_SIZE = 200;
+    this.PARTICLE_POOL_SIZE = 500;
     this.PARTICLE_LIFETIME = 40;
 
     this.WIDTH = width;
