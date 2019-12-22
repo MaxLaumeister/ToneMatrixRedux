@@ -20,9 +20,7 @@ class NotePlayer {
     this.players = [];
     // eslint-disable-next-line prefer-destructuring
     const players = this.players;
-    console.log(scale);
     scale.forEach((el, idx) => {
-      console.log(el, idx);
       Tone.Offline(() => {
         const lowPass = new Tone.Filter({
           frequency: 1100,
@@ -42,7 +40,6 @@ class NotePlayer {
         }).connect(lowPass);
         synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, 0);
       }, (Tone.Time('1m') / gridWidth) * 6).then((buffer) => {
-        console.log(buffer);
         const voices = [];
         for (let i = 0; i < this.numVoices; i += 1) {
           voices.push(new Tone.Player(buffer).toMaster());

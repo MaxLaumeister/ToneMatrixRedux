@@ -49,6 +49,9 @@ class ToneMatrix {
      */
     this.DPR = window.devicePixelRatio || 1;
 
+    this.mouseX = -1;
+    this.mouseY = -1;
+
     // Get the size of the canvas in CSS pixels.
     const rect = this.c.getBoundingClientRect();
     // Give the canvas pixel dimensions of their CSS
@@ -74,14 +77,7 @@ class ToneMatrix {
 
     let arming = null;
 
-    function canvasClick(e) {
-      const currentRect = this.c.getBoundingClientRect(); // abs. size of element
-      const scaleX = this.c.width / currentRect.width; // relationship bitmap vs. element for X
-      const scaleY = this.c.height / currentRect.height; // relationship bitmap vs. element for Y
-
-      const x = (e.clientX - currentRect.left) * scaleX;
-      const y = (e.clientY - currentRect.top) * scaleY;
-
+    function canvasClick(x, y) {
       const tile = this.getTileCollision(x, y);
       if (arming === null) arming = !this.getTileValue(tile.x, tile.y);
       this.setTileValue(tile.x, tile.y, arming);
@@ -90,23 +86,32 @@ class ToneMatrix {
       this.setSharingURL(base64);
     }
     this.c.addEventListener('mousemove', (e) => {
+      const { x, y } = this.setCanvasMousePosition(e);
       if (e.buttons !== 1) return; // Only if left button is held
-      canvasClick.bind(this)(e);
+      canvasClick.bind(this)(x, y);
+    });
+    this.c.addEventListener('mouseleave', () => {
+      this.resetCanvasMousePosition();
     });
     this.c.addEventListener('mousedown', (e) => {
+      const { x, y } = this.setCanvasMousePosition(e);
       arming = null;
-      canvasClick.bind(this)(e);
+      canvasClick.bind(this)(x, y);
     });
     this.c.addEventListener('touchstart', (e) => {
       e.preventDefault(); // Prevent emulated click
       if (e.touches.length === 1) {
         arming = null;
       }
-      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach(
+        (touch) => canvasClick.bind(this)(this.setCanvasMousePosition(touch)),
+      );
     });
     this.c.addEventListener('touchmove', (e) => {
       e.preventDefault(); // Prevent emulated click
-      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach(
+        (touch) => canvasClick.bind(this)(this.setCanvasMousePosition(touch)),
+      );
     });
 
     this.SYNTHLATENCY = 0.25; // Queue events ahead of time
@@ -170,6 +175,27 @@ class ToneMatrix {
     }).bind(this);
 
     drawContinuous();
+  }
+
+  setCanvasMousePosition(e) {
+    const currentRect = this.c.getBoundingClientRect(); // abs. size of element
+    const scaleX = this.c.width / currentRect.width; // relationship bitmap vs. element for X
+    const scaleY = this.c.height / currentRect.height; // relationship bitmap vs. element for Y
+
+    const x = (e.clientX - currentRect.left) * scaleX;
+    const y = (e.clientY - currentRect.top) * scaleY;
+
+    // Update internal position
+    this.mouseX = x;
+    this.mouseY = y;
+
+    return { x, y };
+  }
+
+  resetCanvasMousePosition() {
+    // Update internal position
+    this.mouseX = -1;
+    this.mouseY = -1;
   }
 
   /**
@@ -278,6 +304,9 @@ class ToneMatrix {
     const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
 
     const playheadx = Math.floor(adjustedProgress * this.WIDTH);
+
+    const mousedOverTile = this.getTileCollision(this.mouseX, this.mouseY);
+
     // Draw each tile
     for (let i = 0; i < this.data.length; i += 1) {
       const dx = this.c.height / this.HEIGHT;
@@ -308,9 +337,14 @@ class ToneMatrix {
           this.ctx.drawImage(this.spriteSheet.get(), dx, 0, dx, dy, x, y, dx, dy);
         }
       } else {
-        const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
-        this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
-            / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
+        if (gridx === mousedOverTile.x && gridy === mousedOverTile.y) {
+          // Highlight moused over tile
+          this.ctx.globalAlpha = 0.3;
+        } else {
+          const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
+          this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
+              / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
+        }
         this.ctx.drawImage(this.spriteSheet.get(), 0, 0, dx, dy, x, y, dx, dy);
       }
     }
