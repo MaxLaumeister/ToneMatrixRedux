@@ -53,8 +53,12 @@ class NotePlayer {
 
   play(index, time, volume) {
     // Cycle through the voices
-    this.players[this.currentPlayer].volume.setValueAtTime(volume, time);
-    this.players[this.currentPlayer].start(time, index * this.noteDuration, this.noteDuration);
-    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+    try {
+      this.players[this.currentPlayer].volume.value = volume;
+      this.players[this.currentPlayer].start(time, index * this.noteDuration, this.noteDuration);
+      this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+    } catch (e) {
+      // Player not yet ready
+    }
   }
 }
