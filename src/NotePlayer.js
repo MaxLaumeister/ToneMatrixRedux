@@ -16,48 +16,45 @@ class NotePlayer {
     // Pre-render synth
 
     this.numVoices = 3; // Number of voices (players) *per note*
+    this.noteDuration = (Tone.Time('1m') / gridWidth) * 6; // Total note duration, including release
 
     this.players = [];
-    // eslint-disable-next-line prefer-destructuring
-    const players = this.players;
-    scale.forEach((el, idx) => {
-      Tone.Offline(() => {
-        const lowPass = new Tone.Filter({
-          frequency: 1100,
-          rolloff: -12,
-        }).toMaster();
 
-        const synth = new Tone.PolySynth(16, Tone.Synth, {
-          oscillator: {
-            type: 'sine',
-          },
-          envelope: {
-            attack: 0.005,
-            decay: 0.1,
-            sustain: 0.3,
-            release: 1,
-          },
-        }).connect(lowPass);
-        synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, 0);
-      }, (Tone.Time('1m') / gridWidth) * 6).then((buffer) => {
-        const voices = [];
-        for (let i = 0; i < this.numVoices; i += 1) {
-          voices.push(new Tone.Player(buffer).toMaster());
-        }
-        players[idx] = ({ voices, currentVoice: 0 });
+    this.currentPlayer = 0;
+
+    const self = this;
+    Tone.Offline(() => {
+      const lowPass = new Tone.Filter({
+        frequency: 1100,
+        rolloff: -12,
+      }).toMaster();
+
+      const synth = new Tone.PolySynth(16, Tone.Synth, {
+        oscillator: {
+          type: 'sine',
+        },
+        envelope: {
+          attack: 0.005,
+          decay: 0.1,
+          sustain: 0.3,
+          release: 1,
+        },
+      }).connect(lowPass);
+
+      scale.forEach((el, idx) => {
+        synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, idx * self.noteDuration);
       });
+    }, this.noteDuration * scale.length).then((buffer) => {
+      for (let i = 0; i < scale.length * self.numVoices; i += 1) {
+        this.players.push(new Tone.Player(buffer).toMaster());
+      }
     });
   }
 
   play(index, time, volume) {
-    // Cycle through the note's voices
-    const note = this.players[index];
-    try {
-      note.voices[note.currentVoice].volume.setValueAtTime(volume, time);
-      note.voices[note.currentVoice].start(time);
-      note.currentVoice = (note.currentVoice + 1) % this.numVoices;
-    } catch (e) {
-      // Player not ready yet
-    }
+    // Cycle through the voices
+    this.players[this.currentPlayer].volume.setValueAtTime(volume, time);
+    this.players[this.currentPlayer].start(time, index * this.noteDuration, this.noteDuration);
+    this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
   }
 }
