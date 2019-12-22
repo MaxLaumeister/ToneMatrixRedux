@@ -29,7 +29,7 @@ class NotePlayer {
         rolloff: -12,
       }).toMaster();
 
-      const synth = new Tone.PolySynth(Tone.Synth, {
+      const synth = new Tone.Synth({
         oscillator: {
           type: 'sine',
         },
