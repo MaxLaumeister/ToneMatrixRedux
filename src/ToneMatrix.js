@@ -104,13 +104,19 @@ class ToneMatrix {
         arming = null;
       }
       Array.from(e.touches).forEach(
-        (touch) => canvasClick.bind(this)(this.setCanvasMousePosition(touch)),
+        (touch) => {
+          const { x, y } = this.setCanvasMousePosition(touch);
+          canvasClick.bind(this)(x, y);
+        },
       );
     });
     this.c.addEventListener('touchmove', (e) => {
       e.preventDefault(); // Prevent emulated click
       Array.from(e.touches).forEach(
-        (touch) => canvasClick.bind(this)(this.setCanvasMousePosition(touch)),
+        (touch) => {
+          const { x, y } = this.setCanvasMousePosition(touch);
+          canvasClick.bind(this)(x, y);
+        },
       );
     });
 
