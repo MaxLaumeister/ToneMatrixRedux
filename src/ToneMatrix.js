@@ -2,6 +2,7 @@
 /* global Tone */
 /* global ParticleSystem */
 /* global SpriteSheet */
+/* global NotePlayer */
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
@@ -48,6 +49,9 @@ class ToneMatrix {
      */
     this.DPR = window.devicePixelRatio || 1;
 
+    this.mouseX = -1;
+    this.mouseY = -1;
+
     // Get the size of the canvas in CSS pixels.
     const rect = this.c.getBoundingClientRect();
     // Give the canvas pixel dimensions of their CSS
@@ -73,14 +77,7 @@ class ToneMatrix {
 
     let arming = null;
 
-    function canvasClick(e) {
-      const currentRect = this.c.getBoundingClientRect(); // abs. size of element
-      const scaleX = this.c.width / currentRect.width; // relationship bitmap vs. element for X
-      const scaleY = this.c.height / currentRect.height; // relationship bitmap vs. element for Y
-
-      const x = (e.clientX - currentRect.left) * scaleX;
-      const y = (e.clientY - currentRect.top) * scaleY;
-
+    function canvasClick(x, y) {
       const tile = this.getTileCollision(x, y);
       if (arming === null) arming = !this.getTileValue(tile.x, tile.y);
       this.setTileValue(tile.x, tile.y, arming);
@@ -89,63 +86,49 @@ class ToneMatrix {
       this.setSharingURL(base64);
     }
     this.c.addEventListener('mousemove', (e) => {
+      const { x, y } = this.setCanvasMousePosition(e);
       if (e.buttons !== 1) return; // Only if left button is held
-      canvasClick.bind(this)(e);
+      canvasClick.bind(this)(x, y);
+    });
+    this.c.addEventListener('mouseleave', () => {
+      this.resetCanvasMousePosition();
     });
     this.c.addEventListener('mousedown', (e) => {
+      const { x, y } = this.setCanvasMousePosition(e);
       arming = null;
-      canvasClick.bind(this)(e);
+      canvasClick.bind(this)(x, y);
     });
     this.c.addEventListener('touchstart', (e) => {
       e.preventDefault(); // Prevent emulated click
       if (e.touches.length === 1) {
         arming = null;
       }
-      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach(
+        (touch) => {
+          const { x, y } = this.setCanvasMousePosition(touch);
+          canvasClick.bind(this)(x, y);
+        },
+      );
     });
     this.c.addEventListener('touchmove', (e) => {
       e.preventDefault(); // Prevent emulated click
-      Array.from(e.touches).forEach((touch) => canvasClick.bind(this)(touch));
+      Array.from(e.touches).forEach(
+        (touch) => {
+          const { x, y } = this.setCanvasMousePosition(touch);
+          canvasClick.bind(this)(x, y);
+        },
+      );
     });
-
-    // Construct scale array
-
-    const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
-    const octave = 3; // base octave
-    const octaveoffset = 4;
-    this.scale = Array(this.HEIGHT);
-    for (let i = 0; i < this.HEIGHT; i += 1) {
-      this.scale[i] = pentatonic[i % pentatonic.length]
-        + (octave + Math.floor((i + octaveoffset) / pentatonic.length));
-    }
-    this.scale = this.scale.reverse(); // higher notes at lower y values, near the top
-
-    // Init synth
-
-    const lowPass = new Tone.Filter({
-      frequency: 1100,
-      rolloff: -12,
-    }).toMaster();
-
-    this.synth = new Tone.PolySynth(16, Tone.Synth, {
-      oscillator: {
-        type: 'sine',
-      },
-      envelope: {
-        attack: 0.005,
-        decay: 0.1,
-        sustain: 0.3,
-        release: 1,
-      },
-    }).connect(lowPass);
-
-    this.synth.volume.value = -10;
 
     this.SYNTHLATENCY = 0.25; // Queue events ahead of time
     Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
     Tone.Transport.toggle(); // start
+
+    // Start audio system
+
+    this.notePlayer = new NotePlayer(this.WIDTH, this.HEIGHT);
 
     // Init particle system
 
@@ -200,6 +183,27 @@ class ToneMatrix {
     drawContinuous();
   }
 
+  setCanvasMousePosition(e) {
+    const currentRect = this.c.getBoundingClientRect(); // abs. size of element
+    const scaleX = this.c.width / currentRect.width; // relationship bitmap vs. element for X
+    const scaleY = this.c.height / currentRect.height; // relationship bitmap vs. element for Y
+
+    const x = (e.clientX - currentRect.left) * scaleX;
+    const y = (e.clientY - currentRect.top) * scaleY;
+
+    // Update internal position
+    this.mouseX = x;
+    this.mouseY = y;
+
+    return { x, y };
+  }
+
+  resetCanvasMousePosition() {
+    // Update internal position
+    this.mouseX = -1;
+    this.mouseY = -1;
+  }
+
   /**
    * Clear all tiles and resets the sharing URL.
    */
@@ -244,8 +248,15 @@ class ToneMatrix {
       // Make sure AudioContext has started
       Tone.context.resume();
       // Turning on, schedule note
+
+      const highVolume = -10; // When one note is playing
+      const lowVolume = -35; // When all notes are playing (lower volume to prevent peaking)
+
+      const volume = ((this.HEIGHT - this.countNotesInColumn(x)) / this.HEIGHT)
+        * (highVolume - lowVolume) + lowVolume;
+
       this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
-        this.synth.triggerAttackRelease(this.scale[y], Tone.Time('1m') / this.WIDTH, time);
+        this.notePlayer.play(y, time, volume);
       }, (Tone.Time('1m') / this.WIDTH) * x);
     } else {
       if (!this.getTileValue(x, y)) return;
@@ -253,6 +264,14 @@ class ToneMatrix {
       Tone.Transport.clear(this.data[x * this.WIDTH + y]);
       this.data[x * this.WIDTH + y] = false;
     }
+  }
+
+  countNotesInColumn(x) {
+    let count = 0;
+    for (let i = 0; i < this.HEIGHT; i += 1) {
+      if (this.getTileValue(x, i)) count += 1;
+    }
+    return count;
   }
 
   /**
@@ -291,6 +310,9 @@ class ToneMatrix {
     const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
 
     const playheadx = Math.floor(adjustedProgress * this.WIDTH);
+
+    const mousedOverTile = this.getTileCollision(this.mouseX, this.mouseY);
+
     // Draw each tile
     for (let i = 0; i < this.data.length; i += 1) {
       const dx = this.c.height / this.HEIGHT;
@@ -321,9 +343,14 @@ class ToneMatrix {
           this.ctx.drawImage(this.spriteSheet.get(), dx, 0, dx, dy, x, y, dx, dy);
         }
       } else {
-        const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
-        this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
-            / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
+        if (gridx === mousedOverTile.x && gridy === mousedOverTile.y) {
+          // Highlight moused over tile
+          this.ctx.globalAlpha = 0.3;
+        } else {
+          const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
+          this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
+              / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
+        }
         this.ctx.drawImage(this.spriteSheet.get(), 0, 0, dx, dy, x, y, dx, dy);
       }
     }
