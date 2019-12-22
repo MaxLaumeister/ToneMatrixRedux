@@ -301,12 +301,8 @@ class ToneMatrix {
 
     const heatmap = this.getParticleHeatMap();
 
-    // Progress, adjusted for the latency hint
-    function positivemod(n, m) {
-      return ((n % m) + m) % m;
-    }
-    const adjustedSeconds = positivemod((Tone.Transport.seconds - this.SYNTHLATENCY),
-      (Tone.Transport.loopEnd - Tone.Transport.loopStart));
+    const adjustedSeconds = Tone.Transport.seconds
+      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
     const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
 
     const playheadx = Math.floor(adjustedProgress * this.WIDTH);
