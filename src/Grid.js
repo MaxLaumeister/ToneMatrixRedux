@@ -19,7 +19,7 @@ class Grid {
 
   update(mouseX, mouseY) {
     Util.assert(arguments.length === 2);
-    this.renderer.update(this.data, mouseX, mouseY);
+    this.renderer.update(this.data, this.player.getPlayheadX(), mouseX, mouseY);
   }
 
   /**

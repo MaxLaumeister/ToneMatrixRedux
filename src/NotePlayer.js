@@ -57,6 +57,13 @@ class NotePlayer {
     });
   }
 
+  getPlayheadX() {
+    const adjustedSeconds = Tone.Transport.seconds
+      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
+    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
+    return Math.floor(adjustedProgress * this.gridWidth);
+  }
+
   scheduleNote(gridX, gridY, volume) {
     Util.assert(arguments.length === 3);
     // Cycle through the voices

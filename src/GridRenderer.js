@@ -1,4 +1,3 @@
-/* global Tone */
 /* global SpriteSheet */
 /* global ParticleSystem */
 /* global Util */
@@ -31,18 +30,18 @@ class GridRenderer {
     return heatmap;
   }
 
-  update(gridData, mouseX, mouseY) {
-    Util.assert(arguments.length === 3);
+  update(gridData, playheadX, mouseX, mouseY) {
+    Util.assert(arguments.length === 4);
     this.particleSystem.update();
-    this.draw(gridData, mouseX, mouseY);
+    this.draw(gridData, playheadX, mouseX, mouseY);
   }
 
   /**
    * Draw the current state of the app to the canvas element.
    * This is looped asynchronously via requestAnimationFrame.
    */
-  draw(gridData, mouseX, mouseY) {
-    Util.assert(arguments.length === 3);
+  draw(gridData, playheadX, mouseX, mouseY) {
+    Util.assert(arguments.length === 4);
     // Defaults
     this.ctx.globalAlpha = 1;
     this.ctx.filter = 'none';
@@ -55,12 +54,6 @@ class GridRenderer {
     // Get particle heatmap
 
     const heatmap = this.getParticleHeatMap();
-
-    const adjustedSeconds = Tone.Transport.seconds
-      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-
-    const playheadx = Math.floor(adjustedProgress * this.gridWidth);
 
     const mousedOverTile = Util.pixelCoordsToTileCoords(mouseX, mouseY,
       this.gridWidth, this.gridHeight, this.canvas.width, this.canvas.height);
@@ -77,7 +70,7 @@ class GridRenderer {
       const on = gridData[Util.coordToIndex(gridx, gridy, this.gridWidth)] !== false;
 
       if (on) {
-        if (gridx === playheadx) {
+        if (gridx === playheadX) {
           this.ctx.globalAlpha = 1;
           this.spriteSheet.drawSprite(2, this.ctx, x, y);
           // Create particles
