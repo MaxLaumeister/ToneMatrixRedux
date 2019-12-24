@@ -1,7 +1,12 @@
 /* global Tone */
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class NotePlayer {
+/** Manages instruments and allows the playback of notes */
+class NotePlayer { // eslint-disable-line no-unused-vars
+  /**
+   * Creates a NotePlayer. One player is sufficient for any number of instruments and notes.
+   * @param {*} gridWidth - The width of the grid, in tiles
+   * @param {*} gridHeight - The height of the grid, in tiles
+   */
   constructor(gridWidth, gridHeight) {
     Util.assert(arguments.length === 2);
 
@@ -29,6 +34,7 @@ class NotePlayer {
     this.currentPlayer = 0;
 
     const self = this;
+
     Tone.Offline(() => {
       const lowPass = new Tone.Filter({
         frequency: 1100,
@@ -57,13 +63,13 @@ class NotePlayer {
     });
   }
 
-  getPlayheadX() {
-    const adjustedSeconds = Tone.Transport.seconds
-      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-    return Math.floor(adjustedProgress * this.gridWidth);
-  }
-
+  /**
+   * Schedules a note at an (x, y) grid coordinate to automatically play at the appropriate time
+   * @param {*} gridX - The x position of the note, in grid tiles
+   * @param {*} gridY  - The y position of the note, in grid tiles
+   * @param {*} volume - The volume to play the note at
+   * @returns {noteId} - The id of the note that's been scheduled, for use with unscheduleNote()
+   */
   scheduleNote(gridX, gridY, volume) {
     Util.assert(arguments.length === 3);
     // Cycle through the voices
@@ -84,9 +90,23 @@ class NotePlayer {
     return false;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  unscheduleNote(id) {
+  /**
+   * Unschedules a note so that it will no longer play
+   * @param {noteId} id - The id of the note to unschedule
+   */
+  unscheduleNote(id) { // eslint-disable-line class-methods-use-this
     Util.assert(arguments.length === 1);
     Tone.Transport.clear(id);
+  }
+
+  /**
+   * Get the x position on the grid where the playhead currently is
+   * @returns {number} - The x position
+   */
+  getPlayheadX() {
+    const adjustedSeconds = Tone.Transport.seconds
+      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
+    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
+    return Math.floor(adjustedProgress * this.gridWidth);
   }
 }

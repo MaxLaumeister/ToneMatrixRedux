@@ -1,8 +1,14 @@
 /* global GridRenderer */
 /* global NotePlayer */
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class Grid {
+/** A 2-D matrix that keeps track of notes and can enable, disable, and play them */
+class Grid { // eslint-disable-line no-unused-vars
+  /**
+   * Creates a new Grid
+   * @param {number} width - The width of the grid in tiles
+   * @param {number} height  - The height of the grid in tiles
+   * @param {Canvas} canvas - The canvas DOM element that the grid should draw to
+   */
   constructor(width, height, canvas) {
     Util.assert(arguments.length === 3);
     this.data = Array(width * height).fill(false);
@@ -12,18 +18,18 @@ class Grid {
     this.player = new NotePlayer(width, height);
   }
 
-  clearAllTiles() {
-    Util.assert(arguments.length === 0);
-    this.data = Array(this.width * this.height).fill(false);
-  }
-
+  /**
+   * Updates and draws the grid to the canvas
+   * @param {number} mouseX - The current x position of the mouse on the canvas element
+   * @param {number} mouseY - The current y position of the mouse on the canvas element
+   */
   update(mouseX, mouseY) {
     Util.assert(arguments.length === 2);
-    this.renderer.update(this.data, this.player.getPlayheadX(), mouseX, mouseY);
+    this.renderer.update(this, mouseX, mouseY);
   }
 
   /**
-   * Get whether a grid tile is currently lit up (armed)
+   * Gets whether a grid tile is currently lit up (armed)
    * @param {number} x - The x position, measured in grid tiles
    * @param {number} y - The y position, measured in grid tiles
    * @returns {bool} - Whether the tile is lit up
@@ -34,7 +40,7 @@ class Grid {
   }
 
   /**
-   * Set whether a grid tile is currently lit up (armed)
+   * Sets whether a grid tile is currently lit up (armed)
    * @param {number} x - The x position, measured in grid tiles
    * @param {number} y - The y position, measured in grid tiles
    * @param {bool} - Whether the tile should be turned on (true) or off (false)
@@ -60,6 +66,30 @@ class Grid {
     }
   }
 
+  /**
+   * Toggles whether a grid tile is currently lit up (armed)
+   * @param {number} x - The x position, measured in grid tiles
+   * @param {number} y - The y position, measured in grid tiles
+   */
+  toggleTileValue(x, y) {
+    Util.assert(arguments.length === 2);
+    this.setTileValue(x, y, !this.getTileValue(x, y));
+  }
+
+  /**
+   * Turns off all tiles and remove all notes
+   */
+  clearAllTiles() {
+    Util.assert(arguments.length === 0);
+    this.data = Array(this.width * this.height).fill(false);
+  }
+
+  /**
+   * Counts up the number of armed tiles (notes) in a grid column.
+   * This tells you the degree of polyphony at time x.
+   * @param {number} x - The grid column for which to count up the number of notes
+   * @returns {number} - The number of notes in the grid column
+   */
   countNotesInColumn(x) {
     Util.assert(arguments.length === 1);
     let count = 0;
@@ -70,17 +100,7 @@ class Grid {
   }
 
   /**
-   * Toggle whether a grid tile is currently lit up (armed)
-   * @param {number} x - The x position, measured in grid tiles
-   * @param {number} y - The y position, measured in grid tiles
-   */
-  toggleTileValue(x, y) {
-    Util.assert(arguments.length === 2);
-    this.setTileValue(x, y, !this.getTileValue(x, y));
-  }
-
-  /**
-   * Save the grid's current state into a savestate string
+   * Saves the grid's current state into a savestate string
    * @returns {string} savestate - The base64-encoded URL-encoded savestate string,
    *   ready for saving or outputting in a URL
    */
@@ -114,7 +134,7 @@ class Grid {
   }
 
   /**
-   * Load a savestate from a string into the grid
+   * Loads a savestate from a string into the grid
    * @param {string} savestate - The base64-encoded URL-encoded savestate string
    */
   fromBase64(base64enc) {

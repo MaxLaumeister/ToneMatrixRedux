@@ -2,11 +2,10 @@
 /* global Tone */
 /* global Grid */
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class ToneMatrix {
+/** Main class of ToneMatrix Redux, a pentatonic step sequencer */
+class ToneMatrix { // eslint-disable-line no-unused-vars
   /**
-   * The entry point for ToneMatrix Redux, a pentatonic step sequencer
-   * @constructor
+   * Creates a new ToneMatrix Redux instance, and attach it to existing DOM elements
    * @param {Element} canvasWrapperEl - The wrapper element that ToneMatrix should inject its
    *    canvas into
    * @param {Element} clearNotesButtonEl - A DOM element that should clear all notes when clicked
@@ -167,11 +166,19 @@ class ToneMatrix {
     requestAnimationFrame(updateContinuous.bind(this));
   }
 
+  /**
+   * Updates the state of the app, and draws it to the canvas.
+   * Called in requestAnimationFrame.
+   */
   update() {
     Util.assert(arguments.length === 0);
     this.grid.update(this.mouseX, this.mouseY);
   }
 
+  /**
+   * Updates the this.mouseX and this.mouseY variables based on where the mouse is on the canvas
+   * @param {PointerEvent} e - The touch or click event that contains the new "mouse" position
+   */
   updateCanvasMousePosition(e) {
     Util.assert(arguments.length === 1);
     const currentRect = this.c.getBoundingClientRect(); // abs. size of element
@@ -186,6 +193,10 @@ class ToneMatrix {
     this.mouseY = y;
   }
 
+  /**
+   * Resets the this.mouseX and this.mouseY variables.
+   * Call this when the mouse leaves the canvas or the screen is not being touched.
+   */
   resetCanvasMousePosition() {
     Util.assert(arguments.length === 0);
     // Update internal position
@@ -194,7 +205,7 @@ class ToneMatrix {
   }
 
   /**
-   * Clear all tiles and resets the sharing URL.
+   * Clears all notes from the grid and resets the sharing URL.
    */
   clear() {
     Util.assert(arguments.length === 0);
@@ -204,7 +215,7 @@ class ToneMatrix {
   }
 
   /**
-   * Write encoded data to the "Share URL" input element on the screen.
+   * Writes encoded data to the "Share URL" input element on the screen.
    * @param {string} base64URLEncodedData - Base64, URL-encoded level savestate
    */
   setSharingURL(base64URLEncodedData) {
@@ -214,6 +225,9 @@ class ToneMatrix {
     this.clipboardInputEl.value = `${this.originalURL}?${params}`;
   }
 
+  /**
+   * Resets the "Share URL" input element to the page's canonical URL.
+   */
   resetSharingURL() {
     this.clipboardInputEl.value = this.originalURL;
   }

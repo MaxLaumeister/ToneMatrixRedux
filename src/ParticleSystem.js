@@ -1,11 +1,9 @@
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class ParticleSystem {
+/** A particle system which contains particles that update themselves */
+class ParticleSystem { // eslint-disable-line no-unused-vars
   /**
-   * Represents a particle system.
-   * @constructor
-   * @param {number} width - Height of the particle system, in pixels
-   * @param {number} height - Width of the particle system, in pixels
+   * @param {number} width - Height of the particle system, typically in pixels
+   * @param {number} height - Width of the particle system, typically in pixels
    */
   constructor(width, height) {
     Util.assert(arguments.length === 2);
@@ -22,25 +20,6 @@ class ParticleSystem {
     for (let i = 0; i < this.PARTICLE_POOL_SIZE; i += 1) {
       this.particles[i] = {};
     }
-  }
-
-  /**
-   * Creates a new particle
-   * @param {number} x - Particle's x position, in pixels
-   * @param {number} y - Particle's y position, in pixels
-   * @param {number} vx - Particle's x velocity, in pixels per 1/60th of a second
-   * @param {number} vy - Particle's y velocity, in pixels per 1/60th of a second
-   */
-  createParticle(x, y, vx, vy) {
-    Util.assert(arguments.length === 4);
-    const p = this.particles[this.oldestParticle];
-    p.x = x;
-    p.y = y;
-    p.vx = vx;
-    p.vy = vy;
-    p.life = this.PARTICLE_LIFETIME;
-    this.oldestParticle += 1;
-    if (this.oldestParticle >= this.PARTICLE_POOL_SIZE) this.oldestParticle = 0;
   }
 
   /**
@@ -76,5 +55,24 @@ class ParticleSystem {
     } else {
       this.lastUpdate = Date.now();
     }
+  }
+
+  /**
+   * Creates a new particle
+   * @param {number} x - Particle's x position, in pixels
+   * @param {number} y - Particle's y position, in pixels
+   * @param {number} vx - Particle's x velocity, in pixels per 1/60th of a second
+   * @param {number} vy - Particle's y velocity, in pixels per 1/60th of a second
+   */
+  createParticle(x, y, vx, vy) {
+    Util.assert(arguments.length === 4);
+    const p = this.particles[this.oldestParticle];
+    p.x = x;
+    p.y = y;
+    p.vx = vx;
+    p.vy = vy;
+    p.life = this.PARTICLE_LIFETIME;
+    this.oldestParticle += 1;
+    if (this.oldestParticle >= this.PARTICLE_POOL_SIZE) this.oldestParticle = 0;
   }
 }

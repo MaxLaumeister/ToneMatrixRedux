@@ -1,8 +1,7 @@
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class SpriteSheet {
+/** Manages the sprite sheet. To draw a sprite, use drawSprite(). */
+class SpriteSheet { // eslint-disable-line no-unused-vars
   /**
-   * Manages the sprite sheet. Get the sprite sheet by calling get().
    * @param {number} gridWidth The width of the grid, in tiles
    * @param {number} gridHeight The height of the grid, in tiles
    * @param {number} canvasWidth The width of the canvas, in pixels
@@ -28,7 +27,7 @@ class SpriteSheet {
     const dy = this.tileHeight;
     ssctx.fillStyle = '#fff';
 
-    // Draw rectangle 1 - unarmed white rectangle
+    // Rectangle id 0 - unarmed white rectangle
 
     margin = 4 * currentDevicePixelRatio;
     x = 0;
@@ -37,7 +36,7 @@ class SpriteSheet {
     Util.drawRoundedRectangle(ssctx, x + margin, y + margin,
       dx - 2 * margin, dy - 2 * margin, 2, true, false);
 
-    // Draw rectangle 2 - armed white rectangle
+    // Rectangle id 1 - armed white rectangle
 
     margin = 3 * currentDevicePixelRatio;
     x = dx;
@@ -46,7 +45,7 @@ class SpriteSheet {
     Util.drawRoundedRectangle(ssctx, x + margin, y + margin,
       dx - 2 * margin, dy - 2 * margin, 2, true, false);
 
-    // Draw rectangle 3 - activated white rectangle
+    // Rectangle id 2 - activated white rectangle
 
     margin = 2 * currentDevicePixelRatio;
     x = 2 * dx;
@@ -56,6 +55,13 @@ class SpriteSheet {
       dx - 2 * margin, dy - 2 * margin, 2, true, false);
   }
 
+  /**
+   * Draw a sprite to a canvas
+   * @param {number} spriteId - The id of the sprite to draw
+   * @param {CanvasRenderingContext2D} context - The canvas context to draw to
+   * @param {number} x - The x position on the canvas to draw the sprite to
+   * @param {number} y - The y position on the canvas to draw the sprite to
+   */
   drawSprite(spriteId, context, x, y) {
     Util.assert(arguments.length === 4);
     context.drawImage(this.spriteSheet, spriteId * this.tileWidth, 0,

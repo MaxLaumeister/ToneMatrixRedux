@@ -1,8 +1,13 @@
 /* global SpriteSheet */
 /* global ParticleSystem */
 /* global Util */
-// eslint-disable-next-line no-unused-vars
-class GridRenderer {
+/** Renders a Grid to a canvas element */
+class GridRenderer { // eslint-disable-line no-unused-vars
+  /**
+   * @param {number} gridWidth - The width of the grid, in tiles
+   * @param {number} gridHeight - The height of the grid, in tiles
+   * @param {Canvas} canvas - The canvas DOM element to render to
+   */
   constructor(gridWidth, gridHeight, canvas) {
     Util.assert(arguments.length === 3);
     this.spriteSheet = new SpriteSheet(gridWidth, gridHeight, canvas.width, canvas.height);
@@ -14,34 +19,28 @@ class GridRenderer {
   }
 
   /**
-  * Gets the "heat" of every tile by calculating how many particles are on top of the tile
-  * @returns {array} An array of numbers from 0 to 1, representing the "heat" of each tile
-  */
-  getParticleHeatMap() {
-    Util.assert(arguments.length === 0);
-    const heatmap = Array(this.gridWidth * this.gridHeight).fill(0);
-    const ps = this.particleSystem;
-    for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i += 1) {
-      const p = ps.particles[i];
-      const tile = Util.pixelCoordsToTileCoords(p.x, p.y, this.gridWidth, this.gridHeight,
-        this.canvas.width, this.canvas.height);
-      if (tile) heatmap[this.gridWidth * tile.y + tile.x] = p.life;
-    }
-    return heatmap;
-  }
-
-  update(gridData, playheadX, mouseX, mouseY) {
-    Util.assert(arguments.length === 4);
+   * Update, then draw the current state of the app to the canvas element.
+   * @param {Grid} grid - The grid to be rendered
+   * @param {number} mouseX - The x position of the mouse on the canvas
+   * @param {number} mouseY - The y position of the mouse on the canvas
+   */
+  update(grid, mouseX, mouseY) {
+    Util.assert(arguments.length === 3);
     this.particleSystem.update();
-    this.draw(gridData, playheadX, mouseX, mouseY);
+    this.draw(grid, mouseX, mouseY);
   }
 
   /**
    * Draw the current state of the app to the canvas element.
-   * This is looped asynchronously via requestAnimationFrame.
+   * @param {Grid} grid - The grid to be rendered
+   * @param {number} mouseX - The x position of the mouse on the canvas
+   * @param {number} mouseY - The y position of the mouse on the canvas
    */
-  draw(gridData, playheadX, mouseX, mouseY) {
-    Util.assert(arguments.length === 4);
+  draw(grid, mouseX, mouseY) {
+    Util.assert(arguments.length === 3);
+
+    const playheadX = grid.player.getPlayheadX();
+
     // Defaults
     this.ctx.globalAlpha = 1;
     this.ctx.filter = 'none';
@@ -59,7 +58,7 @@ class GridRenderer {
       this.gridWidth, this.gridHeight, this.canvas.width, this.canvas.height);
 
     // Draw each tile
-    for (let i = 0; i < gridData.length; i += 1) {
+    for (let i = 0; i < grid.data.length; i += 1) {
       const dx = this.canvas.height / this.gridHeight;
       const dy = this.canvas.width / this.gridWidth;
       const gridx = i % this.gridWidth;
@@ -67,7 +66,7 @@ class GridRenderer {
       const x = dx * gridx;
       const y = dy * gridy;
 
-      const on = gridData[Util.coordToIndex(gridx, gridy, this.gridWidth)] !== false;
+      const on = grid.data[Util.coordToIndex(gridx, gridy, this.gridWidth)] !== false;
 
       if (on) {
         if (gridx === playheadX) {
@@ -111,5 +110,22 @@ class GridRenderer {
         this.ctx.fillRect(p.x, p.y, 2, 2);
       }
     }
+  }
+
+  /**
+  * Gets the "heat" of every tile by calculating how many particles are on top of the tile
+  * @returns {number[]} An array of numbers from 0 to 1, representing the "heat" of each tile
+  */
+  getParticleHeatMap() {
+    Util.assert(arguments.length === 0);
+    const heatmap = Array(this.gridWidth * this.gridHeight).fill(0);
+    const ps = this.particleSystem;
+    for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i += 1) {
+      const p = ps.particles[i];
+      const tile = Util.pixelCoordsToTileCoords(p.x, p.y, this.gridWidth, this.gridHeight,
+        this.canvas.width, this.canvas.height);
+      if (tile) heatmap[this.gridWidth * tile.y + tile.x] = p.life;
+    }
+    return heatmap;
   }
 }
