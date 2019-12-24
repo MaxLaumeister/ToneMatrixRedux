@@ -108,6 +108,10 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
         },
       );
     });
+    this.c.addEventListener('touchend', (e) => {
+      e.preventDefault(); // Prevent emulated click
+      this.resetCanvasMousePosition();
+    });
     this.c.addEventListener('touchmove', (e) => {
       e.preventDefault(); // Prevent emulated click
       Array.from(e.touches).forEach(

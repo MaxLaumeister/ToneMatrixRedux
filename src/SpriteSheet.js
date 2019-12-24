@@ -16,7 +16,7 @@ class SpriteSheet { // eslint-disable-line no-unused-vars
     this.spriteSheet.width = 3 * this.tileWidth; // 3 sprites. very magical
     this.spriteSheet.height = this.tileHeight;
 
-    const currentDevicePixelRatio = devicePixelRatio || 1;
+    const currentDevicePixelRatio = Util.getDevicePixelRatio();
 
     // For all rectangles
 

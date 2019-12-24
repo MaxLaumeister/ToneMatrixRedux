@@ -75,6 +75,14 @@ class Util { // eslint-disable-line no-unused-vars
   }
 
   /**
+   * Gets the current devicePixelRatio in a performant way
+   * @returns {number} - The device pixel ratio
+   */
+  static getDevicePixelRatio() {
+    return Util.devicePixelRatio;
+  }
+
+  /**
    * Logs an error to the console if an assertion is false
    * @param {boolean} bool - The assertion to check
    */
@@ -84,3 +92,14 @@ class Util { // eslint-disable-line no-unused-vars
     if (!bool) console.error('assertion failed');
   }
 }
+
+Util.devicePixelRatio = 1;
+
+(function initPixelRatio() {
+  const mqString = `(resolution: ${window.devicePixelRatio}dppx)`;
+  const updatePixelRatio = () => {
+    Util.devicePixelRatio = window.devicePixelRatio || 1;
+  };
+  updatePixelRatio();
+  matchMedia(mqString).addEventListener('change', updatePixelRatio);
+}());

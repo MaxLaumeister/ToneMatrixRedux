@@ -40,6 +40,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
     Util.assert(arguments.length === 3);
 
     const playheadX = grid.player.getPlayheadX();
+    const dpr = Util.getDevicePixelRatio();
 
     // Defaults
     this.ctx.globalAlpha = 1;
@@ -75,7 +76,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
           // Create particles
           const px = dx * (gridx + 0.5);
           const py = dy * (gridy + 0.5);
-          const velocityscalar = 10 * this.DPR;
+          const velocityscalar = 10 * dpr;
           const numparticles = 20;
           for (let j = 0; j < 2 * Math.PI; j += (2 * Math.PI) / numparticles) {
             const pvx = Math.cos(j) * velocityscalar;
