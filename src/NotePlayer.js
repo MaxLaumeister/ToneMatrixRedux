@@ -79,7 +79,6 @@ class NotePlayer {
 
   // eslint-disable-next-line class-methods-use-this
   unscheduleNote(id) {
-    console.log(id);
     Util.assert(arguments.length === 1);
     Tone.Transport.clear(id);
   }

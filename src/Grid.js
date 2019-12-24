@@ -52,7 +52,6 @@ class Grid {
         * (highVolume - lowVolume) + lowVolume;
 
       this.data[Util.coordToIndex(x, y, this.width)] = this.player.scheduleNote(x, y, volume);
-
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
