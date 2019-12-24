@@ -4,8 +4,8 @@
 class NotePlayer { // eslint-disable-line no-unused-vars
   /**
    * Creates a NotePlayer. One player is sufficient for any number of instruments and notes.
-   * @param {*} gridWidth - The width of the grid, in tiles
-   * @param {*} gridHeight - The height of the grid, in tiles
+   * @param {number} gridWidth - The width of the grid, in tiles
+   * @param {number} gridHeight - The height of the grid, in tiles
    */
   constructor(gridWidth, gridHeight) {
     Util.assert(arguments.length === 2);
@@ -14,6 +14,7 @@ class NotePlayer { // eslint-disable-line no-unused-vars
     this.gridHeight = gridHeight;
 
     // Construct scale array
+
     const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
     const octave = 3; // base octave
     const octaveoffset = 4;
@@ -61,27 +62,41 @@ class NotePlayer { // eslint-disable-line no-unused-vars
         this.players.push(new Tone.Player(buffer).toMaster());
       }
     });
+
+    // Init polyphony tracker. More notes playing at the same time
+    // means that each note needs to play quieter
+
+    this.polyphony = Array(gridWidth).fill(0);
+    this.notes = []; // Sparse array
   }
 
   /**
-   * Schedules a note at an (x, y) grid coordinate to automatically play at the appropriate time
-   * @param {*} gridX - The x position of the note, in grid tiles
-   * @param {*} gridY  - The y position of the note, in grid tiles
-   * @param {*} volume - The volume to play the note at
+   * Schedules a note at an (x, y) grid coordinate
+   * to automatically play at the appropriate time and pitch
+   * @param {number} gridX - The x position of the note, in grid tiles
+   * @param {number} gridY  - The y position of the note, in grid tiles
    * @returns {noteId} - The id of the note that's been scheduled, for use with unscheduleNote()
    */
-  scheduleNote(gridX, gridY, volume) {
-    Util.assert(arguments.length === 3);
+  scheduleNote(gridX, gridY) {
+    Util.assert(arguments.length === 2);
     // Cycle through the voices
     try {
       const noteDuration = Tone.Time('1m') / this.gridWidth;
       const playEvent = Tone.Transport.schedule((time) => {
+        const highVolume = -10; // When one note is playing
+        const lowVolume = -20; // When all notes are playing (lower volume to prevent peaking)
+
+        const volume = ((this.gridHeight - this.polyphony[gridX]) / this.gridHeight)
+          * (highVolume - lowVolume) + lowVolume;
+
         this.players[this.currentPlayer].volume.value = volume;
         this.players[this.currentPlayer].start(
           time, gridY * this.noteOffset, this.noteOffset,
         );
         this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
       }, gridX * noteDuration);
+      this.notes[playEvent] = { x: gridX, y: gridY };
+      this.polyphony[gridX] += 1;
       return playEvent;
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -96,6 +111,10 @@ class NotePlayer { // eslint-disable-line no-unused-vars
    */
   unscheduleNote(id) { // eslint-disable-line class-methods-use-this
     Util.assert(arguments.length === 1);
+    const { x } = this.notes[id];
+    delete this.notes[id];
+    this.polyphony[x] -= 1;
+    Util.assert(this.polyphony[x] >= 0);
     Tone.Transport.clear(id);
   }
 

@@ -32,6 +32,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
 
   /**
    * Draw the current state of the app to the canvas element.
+   * @private
    * @param {Grid} grid - The grid to be rendered
    * @param {number} mouseX - The x position of the mouse on the canvas
    * @param {number} mouseY - The y position of the mouse on the canvas

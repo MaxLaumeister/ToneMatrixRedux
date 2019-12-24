@@ -51,13 +51,7 @@ class Grid { // eslint-disable-line no-unused-vars
       if (this.getTileValue(x, y)) return;
       // Turning on, schedule note
 
-      const highVolume = -10; // When one note is playing
-      const lowVolume = -35; // When all notes are playing (lower volume to prevent peaking)
-
-      const volume = ((this.height - this.countNotesInColumn(x)) / this.height)
-        * (highVolume - lowVolume) + lowVolume;
-
-      this.data[Util.coordToIndex(x, y, this.width)] = this.player.scheduleNote(x, y, volume);
+      this.data[Util.coordToIndex(x, y, this.width)] = this.player.scheduleNote(x, y);
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
@@ -82,21 +76,6 @@ class Grid { // eslint-disable-line no-unused-vars
   clearAllTiles() {
     Util.assert(arguments.length === 0);
     this.data = Array(this.width * this.height).fill(false);
-  }
-
-  /**
-   * Counts up the number of armed tiles (notes) in a grid column.
-   * This tells you the degree of polyphony at time x.
-   * @param {number} x - The grid column for which to count up the number of notes
-   * @returns {number} - The number of notes in the grid column
-   */
-  countNotesInColumn(x) {
-    Util.assert(arguments.length === 1);
-    let count = 0;
-    for (let i = 0; i < this.height; i += 1) {
-      if (this.getTileValue(x, i)) count += 1;
-    }
-    return count;
   }
 
   /**

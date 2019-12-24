@@ -31,16 +31,19 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
     const dpr = devicePixelRatio || 1;
     this.c.width = rect.width * dpr;
     this.c.height = rect.height * dpr;
+
     /**
      * The main canvas element's 2d drawing context
      * @type {CanvasRenderingContext2D}
      */
     this.ctx = this.c.getContext('2d');
+
     /**
      * The width of the grid, measured in grid tiles
      * @const {number}
      */
     this.WIDTH = 16;
+
     /**
      * The height of the grid, measured in grid tiles
      * @const {number}
