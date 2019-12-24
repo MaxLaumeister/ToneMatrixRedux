@@ -1,7 +1,9 @@
 /* global Tone */
+/* global Util */
 // eslint-disable-next-line no-unused-vars
 class NotePlayer {
   constructor(gridWidth, gridHeight) {
+    Util.assert(arguments.length === 2);
     // Construct scale array
     const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
     const octave = 3; // base octave
@@ -52,13 +54,15 @@ class NotePlayer {
   }
 
   play(index, time, volume) {
+    Util.assert(arguments.length === 3);
     // Cycle through the voices
     try {
       this.players[this.currentPlayer].volume.value = volume;
       this.players[this.currentPlayer].start(time, index * this.noteDuration, this.noteDuration);
       this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
     } catch (e) {
-      // Player not yet ready
+      // eslint-disable-next-line no-console
+      console.warn('Note play failure:', e);
     }
   }
 }

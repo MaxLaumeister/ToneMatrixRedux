@@ -3,27 +3,29 @@
 class SpriteSheet {
   /**
    * Manages the sprite sheet. Get the sprite sheet by calling get().
-   * @param {number} canvasWidth The width of the canvas, in pixels
-   * @param {number} canvasHeight The height of the canvas, in pixels
    * @param {number} gridWidth The width of the grid, in tiles
    * @param {number} gridHeight The height of the grid, in tiles
-   * @param {number} currentDevicePixelRatio The device pixel ratio of the current display
+   * @param {number} canvasWidth The width of the canvas, in pixels
+   * @param {number} canvasHeight The height of the canvas, in pixels
    */
-  constructor(canvasWidth, canvasHeight, gridWidth, gridHeight, currentDevicePixelRatio) {
+  constructor(gridWidth, gridHeight, canvasWidth, canvasHeight) {
+    Util.assert(arguments.length === 4);
     this.spriteSheet = document.createElement('canvas');
     const ssctx = this.spriteSheet.getContext('2d');
-    const tileWidth = canvasWidth / gridWidth;
-    const tileHeight = canvasHeight / gridHeight;
-    this.spriteSheet.width = 3 * tileWidth; // 3 rectangles
-    this.spriteSheet.height = tileHeight;
+    this.tileWidth = canvasWidth / gridWidth;
+    this.tileHeight = canvasHeight / gridHeight;
+    this.spriteSheet.width = 3 * this.tileWidth; // 3 sprites. very magical
+    this.spriteSheet.height = this.tileHeight;
+
+    const currentDevicePixelRatio = devicePixelRatio || 1;
 
     // For all rectangles
 
     let margin;
     let x;
     let y;
-    const dx = tileWidth;
-    const dy = tileHeight;
+    const dx = this.tileWidth;
+    const dy = this.tileHeight;
     ssctx.fillStyle = '#fff';
 
     // Draw rectangle 1 - unarmed white rectangle
@@ -54,11 +56,9 @@ class SpriteSheet {
       dx - 2 * margin, dy - 2 * margin, 2, true, false);
   }
 
-  /**
-   * Get the app's sprite sheet.
-   * @returns {Element} - The sprite sheet 'canvas' element
-   */
-  get() {
-    return this.spriteSheet;
+  drawSprite(spriteId, context, x, y) {
+    Util.assert(arguments.length === 4);
+    context.drawImage(this.spriteSheet, spriteId * this.tileWidth, 0,
+      this.tileWidth, this.tileHeight, x, y, this.tileWidth, this.tileHeight);
   }
 }

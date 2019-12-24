@@ -1,8 +1,7 @@
 /* global ClipboardJS */
 /* global Tone */
-/* global ParticleSystem */
-/* global SpriteSheet */
-/* global NotePlayer */
+/* global Grid */
+/* global Util */
 // eslint-disable-next-line no-unused-vars
 class ToneMatrix {
   /**
@@ -16,6 +15,7 @@ class ToneMatrix {
    *    clipboard when clicked
    */
   constructor(canvasWrapperEl, clearNotesButtonEl, clipboardInputEl, clipboardButtonEl) {
+    Util.assert(arguments.length === 4);
     this.DEBUG = false;
 
     /**
@@ -23,9 +23,15 @@ class ToneMatrix {
      * @type {Element}
      */
     this.c = document.createElement('canvas');
-    this.c.width = 500;
-    this.c.height = 500;
     canvasWrapperEl.appendChild(this.c);
+    const rect = this.c.getBoundingClientRect();
+
+    // Get the size of the canvas in CSS pixels.
+    // Give the canvas pixel dimensions of their CSS
+    // size * the device pixel ratio.
+    const dpr = devicePixelRatio || 1;
+    this.c.width = rect.width * dpr;
+    this.c.height = rect.height * dpr;
     /**
      * The main canvas element's 2d drawing context
      * @type {CanvasRenderingContext2D}
@@ -41,23 +47,11 @@ class ToneMatrix {
      * @const {number}
      */
     this.HEIGHT = 16;
-    this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
 
-    /**
-     * The device pixel ratio of the current display
-     * @const {number}
-     */
-    this.DPR = window.devicePixelRatio || 1;
+    this.grid = new Grid(this.WIDTH, this.HEIGHT, this.c);
 
     this.mouseX = -1;
     this.mouseY = -1;
-
-    // Get the size of the canvas in CSS pixels.
-    const rect = this.c.getBoundingClientRect();
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    this.c.width = rect.width * this.DPR;
-    this.c.height = rect.height * this.DPR;
 
     // Clipboard input element
 
@@ -65,7 +59,7 @@ class ToneMatrix {
     this.originalURL = [window.location.protocol, '//', window.location.host, window.location.pathname].join(''); // Initial page URL without query string
 
     clearNotesButtonEl.addEventListener('click', () => {
-      this.clearAllTiles();
+      this.clear();
     });
 
     // Integrate the clipboard button with the ClipboardJS library
@@ -75,28 +69,33 @@ class ToneMatrix {
 
     // Listen for clicks on the canvas
 
-    let arming = null;
+    let arming = null; // Whether our cursor is currently turning on or turning off tiles
 
     function canvasClick(x, y) {
-      const tile = this.getTileCollision(x, y);
-      if (arming === null) arming = !this.getTileValue(tile.x, tile.y);
-      this.setTileValue(tile.x, tile.y, arming);
+      Util.assert(arguments.length === 2);
+      const tile = Util.pixelCoordsToTileCoords(x, y, this.WIDTH, this.HEIGHT,
+        this.c.width, this.c.height);
+      if (arming === null) arming = !this.grid.getTileValue(tile.x, tile.y);
+      this.grid.setTileValue(tile.x, tile.y, arming);
       // Update URL fragment
-      const base64 = this.gridToBase64();
-      this.setSharingURL(base64);
+      const base64 = this.grid.toBase64();
+      if (base64) this.setSharingURL(base64);
+      else this.resetSharingURL();
+      // Make sure audio context is running
+      Tone.context.resume();
     }
     this.c.addEventListener('mousemove', (e) => {
-      const { x, y } = this.setCanvasMousePosition(e);
+      this.updateCanvasMousePosition(e);
       if (e.buttons !== 1) return; // Only if left button is held
-      canvasClick.bind(this)(x, y);
+      canvasClick.bind(this)(this.mouseX, this.mouseY);
     });
     this.c.addEventListener('mouseleave', () => {
       this.resetCanvasMousePosition();
     });
     this.c.addEventListener('mousedown', (e) => {
-      const { x, y } = this.setCanvasMousePosition(e);
+      this.updateCanvasMousePosition(e);
       arming = null;
-      canvasClick.bind(this)(x, y);
+      canvasClick.bind(this)(this.mouseX, this.mouseY);
     });
     this.c.addEventListener('touchstart', (e) => {
       e.preventDefault(); // Prevent emulated click
@@ -105,8 +104,8 @@ class ToneMatrix {
       }
       Array.from(e.touches).forEach(
         (touch) => {
-          const { x, y } = this.setCanvasMousePosition(touch);
-          canvasClick.bind(this)(x, y);
+          this.updateCanvasMousePosition(touch);
+          canvasClick.bind(this)(this.mouseX, this.mouseY);
         },
       );
     });
@@ -114,8 +113,8 @@ class ToneMatrix {
       e.preventDefault(); // Prevent emulated click
       Array.from(e.touches).forEach(
         (touch) => {
-          const { x, y } = this.setCanvasMousePosition(touch);
-          canvasClick.bind(this)(x, y);
+          this.updateCanvasMousePosition(touch);
+          canvasClick.bind(this)(this.mouseX, this.mouseY);
         },
       );
     });
@@ -125,14 +124,6 @@ class ToneMatrix {
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
     Tone.Transport.toggle(); // start
-
-    // Start audio system
-
-    this.notePlayer = new NotePlayer(this.WIDTH, this.HEIGHT);
-
-    // Init particle system
-
-    this.particleSystem = new ParticleSystem(this.c.width, this.c.height);
 
     // If Chrome Autoplay Policy is blocking audio,
     // add a play button that encourages user interaction
@@ -160,30 +151,29 @@ class ToneMatrix {
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('d');
     if (data) {
-      this.base64ToGrid(data);
+      this.grid.fromBase64(data);
       this.setSharingURL(data);
       window.history.replaceState('', document.title, window.location.pathname);
     } else {
-      this.setSharingURL('');
+      this.resetSharingURL();
     }
 
-    // Create sprite sheet
+    // Kick off game loop
 
-    this.spriteSheet = new SpriteSheet(this.c.width, this.c.height,
-      this.WIDTH, this.HEIGHT, this.DPR);
-
-    // Kick off drawing loop
-
-    const drawContinuous = (function drawContinuousUnbound() {
-      this.particleSystem.tickParticles();
-      this.draw();
-      window.requestAnimationFrame(drawContinuous);
-    }).bind(this);
-
-    drawContinuous();
+    function updateContinuous() {
+      this.update();
+      requestAnimationFrame(updateContinuous.bind(this));
+    }
+    requestAnimationFrame(updateContinuous.bind(this));
   }
 
-  setCanvasMousePosition(e) {
+  update() {
+    Util.assert(arguments.length === 0);
+    this.grid.update(this.mouseX, this.mouseY);
+  }
+
+  updateCanvasMousePosition(e) {
+    Util.assert(arguments.length === 1);
     const currentRect = this.c.getBoundingClientRect(); // abs. size of element
     const scaleX = this.c.width / currentRect.width; // relationship bitmap vs. element for X
     const scaleY = this.c.height / currentRect.height; // relationship bitmap vs. element for Y
@@ -194,11 +184,10 @@ class ToneMatrix {
     // Update internal position
     this.mouseX = x;
     this.mouseY = y;
-
-    return { x, y };
   }
 
   resetCanvasMousePosition() {
+    Util.assert(arguments.length === 0);
     // Update internal position
     this.mouseX = -1;
     this.mouseY = -1;
@@ -207,10 +196,11 @@ class ToneMatrix {
   /**
    * Clear all tiles and resets the sharing URL.
    */
-  clearAllTiles() {
-    this.data = Array(this.WIDTH * this.HEIGHT).fill(false);
+  clear() {
+    Util.assert(arguments.length === 0);
+    this.grid.clearAllTiles();
     Tone.Transport.cancel();
-    this.setSharingURL(''); // get rid of hash
+    this.resetSharingURL(); // get rid of hash
   }
 
   /**
@@ -218,248 +208,13 @@ class ToneMatrix {
    * @param {string} base64URLEncodedData - Base64, URL-encoded level savestate
    */
   setSharingURL(base64URLEncodedData) {
-    if (base64URLEncodedData) {
-      const params = new URLSearchParams({ v: '1', d: base64URLEncodedData });
-      this.clipboardInputEl.value = `${this.originalURL}?${params}`;
-    } else {
-      this.clipboardInputEl.value = this.originalURL;
-    }
+    Util.assert(arguments.length === 1);
+    Util.assert(base64URLEncodedData);
+    const params = new URLSearchParams({ v: '1', d: base64URLEncodedData });
+    this.clipboardInputEl.value = `${this.originalURL}?${params}`;
   }
 
-  /**
-   * Get whether a grid tile is currently lit up (armed)
-   * @param {number} x - The x position, measured in grid tiles
-   * @param {number} y - The y position, measured in grid tiles
-   * @returns {bool} - Whether the tile is lit up
-   */
-  getTileValue(x, y) {
-    return this.data[x * this.WIDTH + y] !== false;
-  }
-
-  /**
-   * Set whether a grid tile is currently lit up (armed)
-   * @param {number} x - The x position, measured in grid tiles
-   * @param {number} y - The y position, measured in grid tiles
-   * @param {bool} - Whether the tile should be turned on (true) or off (false)
-   */
-  setTileValue(x, y, bool) {
-    if (bool) {
-      if (this.getTileValue(x, y)) return;
-      // Make sure AudioContext has started
-      Tone.context.resume();
-      // Turning on, schedule note
-
-      const highVolume = -10; // When one note is playing
-      const lowVolume = -35; // When all notes are playing (lower volume to prevent peaking)
-
-      const volume = ((this.HEIGHT - this.countNotesInColumn(x)) / this.HEIGHT)
-        * (highVolume - lowVolume) + lowVolume;
-
-      this.data[x * this.WIDTH + y] = Tone.Transport.schedule((time) => {
-        this.notePlayer.play(y, time, volume);
-      }, (Tone.Time('1m') / this.WIDTH) * x);
-    } else {
-      if (!this.getTileValue(x, y)) return;
-      // Turning off, unschedule note
-      Tone.Transport.clear(this.data[x * this.WIDTH + y]);
-      this.data[x * this.WIDTH + y] = false;
-    }
-  }
-
-  countNotesInColumn(x) {
-    let count = 0;
-    for (let i = 0; i < this.HEIGHT; i += 1) {
-      if (this.getTileValue(x, i)) count += 1;
-    }
-    return count;
-  }
-
-  /**
-   * Toggle whether a grid tile is currently lit up (armed)
-   * @param {number} x - The x position, measured in grid tiles
-   * @param {number} y - The y position, measured in grid tiles
-   */
-  toggleTileValue(x, y) {
-    this.setTileValue(x, y, !this.getTileValue(x, y));
-  }
-
-  /**
-   * Draw the current state of the app to the canvas element.
-   * This is looped asynchronously via requestAnimationFrame.
-   */
-  draw() {
-    // Defaults
-    this.ctx.globalAlpha = 1;
-    this.ctx.filter = 'none';
-
-    this.ctx.beginPath();
-    this.ctx.rect(0, 0, this.c.width, this.c.height);
-    this.ctx.fillStyle = 'black';
-    this.ctx.fill();
-
-    // Get particle heatmap
-
-    const heatmap = this.getParticleHeatMap();
-
-    const adjustedSeconds = Tone.Transport.seconds
-      % (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-    const adjustedProgress = adjustedSeconds / (Tone.Transport.loopEnd - Tone.Transport.loopStart);
-
-    const playheadx = Math.floor(adjustedProgress * this.WIDTH);
-
-    const mousedOverTile = this.getTileCollision(this.mouseX, this.mouseY);
-
-    // Draw each tile
-    for (let i = 0; i < this.data.length; i += 1) {
-      const dx = this.c.height / this.HEIGHT;
-      const dy = this.c.width / this.WIDTH;
-      const gridx = i % this.WIDTH;
-      const gridy = Math.floor(i / this.WIDTH);
-      const x = dx * gridx;
-      const y = dy * gridy;
-
-      const on = this.getTileValue(gridx, gridy);
-
-      if (on) {
-        if (gridx === playheadx) {
-          this.ctx.globalAlpha = 1;
-          this.ctx.drawImage(this.spriteSheet.get(), dx * 2, 0, dx, dy, x, y, dx, dy);
-          // Create particles
-          const px = dx * (gridx + 0.5);
-          const py = dy * (gridy + 0.5);
-          const velocityscalar = 10 * this.DPR;
-          const numparticles = 20;
-          for (let j = 0; j < 2 * Math.PI; j += (2 * Math.PI) / numparticles) {
-            const pvx = Math.cos(j) * velocityscalar;
-            const pvy = Math.sin(j) * velocityscalar;
-            this.particleSystem.createParticle(px, py, pvx, pvy);
-          }
-        } else {
-          this.ctx.globalAlpha = 0.85;
-          this.ctx.drawImage(this.spriteSheet.get(), dx, 0, dx, dy, x, y, dx, dy);
-        }
-      } else {
-        if (gridx === mousedOverTile.x && gridy === mousedOverTile.y) {
-          // Highlight moused over tile
-          this.ctx.globalAlpha = 0.3;
-        } else {
-          const BRIGHTNESS = 0.05; // max particle brightness between 0 and 1
-          this.ctx.globalAlpha = ((heatmap[i] * BRIGHTNESS * (204 / 255))
-              / this.particleSystem.PARTICLE_LIFETIME) + 51 / 255;
-        }
-        this.ctx.drawImage(this.spriteSheet.get(), 0, 0, dx, dy, x, y, dx, dy);
-      }
-    }
-
-    // Draw particles
-
-    if (this.DEBUG) {
-      const ps = this.particleSystem;
-      for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i += 1) {
-        const p = ps.particles[i];
-        this.ctx.globalAlpha = 1;
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(p.x, p.y, 2, 2);
-      }
-    }
-  }
-
-  /**
-   * Convert a canvas position (measured in pixels) to a grid position (measured in tiles)
-   * @param {number} x - The x position on the canvas, measured in pixels
-   * @param {number} y - The y position on the canvas, measured in pixels
-   * @returns {number} x - The x position on the grid, measured in grid tiles
-   * @returns {number} y - The y position on the grid, measured in grid tiles
-   */
-  getTileCollision(x, y) {
-    const dx = this.c.height / this.HEIGHT;
-    const dy = this.c.width / this.WIDTH;
-    const xCoord = Math.floor(x / dx);
-    const yCoord = Math.floor(y / dy);
-    if (
-      xCoord >= this.WIDTH
-            || yCoord >= this.WIDTH
-            || xCoord < 0
-            || yCoord < 0
-    ) {
-      return false;
-    }
-    return { x: xCoord, y: yCoord };
-  }
-
-  /**
-   * Gets the "heat" of every tile by calculating how many particles are on top of the tile
-   * @returns {array} An array of numbers from 0 to 1, representing the "heat" of each tile
-   */
-  getParticleHeatMap() {
-    const heatmap = Array(this.WIDTH * this.HEIGHT).fill(0);
-    const ps = this.particleSystem;
-    for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i += 1) {
-      const p = ps.particles[i];
-      const tile = this.getTileCollision(p.x, p.y);
-      if (tile) heatmap[this.WIDTH * tile.y + tile.x] = p.life;
-    }
-    return heatmap;
-  }
-
-  /**
-   * Save the app's current state into a savestate string
-   * @returns {string} savestate - The base64-encoded URL-encoded savestate string,
-   *   ready for saving or outputting in a URL
-   */
-  gridToBase64() {
-    let dataflag = false;
-    const bytes = new Uint8Array(this.data.length / 8);
-    for (let i = 0; i < this.data.length / 8; i += 1) {
-      let str = '';
-      for (let j = 0; j < 8; j += 1) {
-        const tile = this.data[i * 8 + j] !== false;
-        if (tile) {
-          str += '1';
-          dataflag = true;
-        } else {
-          str += '0';
-        }
-      }
-      bytes[i] = parseInt(str, 2);
-    }
-    if (!dataflag) return '';
-
-    let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i += 1) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    const base64 = btoa(binary);
-    const base64enc = encodeURIComponent(base64);
-    return base64enc;
-  }
-
-  /**
-   * Load a savestate from a string into the app
-   * @param {string} savestate - The base64-encoded URL-encoded savestate string
-   */
-  base64ToGrid(base64enc) {
-    try {
-      const base64 = decodeURIComponent(base64enc);
-      const binary = atob(base64);
-
-      const bytes = new Uint8Array(this.data.length / 8);
-      let str = '';
-      for (let i = 0; i < this.data.length / 8; i += 1) {
-        const byte = binary.charCodeAt(i);
-        bytes[i] = byte;
-        let bits = byte.toString(2);
-        bits = bits.padStart(8, '0');
-        str += bits;
-      }
-
-      for (let i = 0; i < str.length; i += 1) {
-        const bool = str[i] === '1';
-        this.setTileValue(Math.floor(i / this.WIDTH), i % this.WIDTH, bool);
-      }
-    } catch (e) {
-      // Invalid hash
-    }
+  resetSharingURL() {
+    this.clipboardInputEl.value = this.originalURL;
   }
 }

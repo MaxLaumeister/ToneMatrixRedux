@@ -1,10 +1,14 @@
 # ToneMatrix Redux
 
-Click on the boxes and make music! This project is an HTML5 revival of [ToneMatrix by Audiotool](https://tonematrix.audiotool.com/), which was originally written in Flash.
+[Click on the boxes and make music!](https://www.maxlaumeister.com/tonematrix/) This project is an HTML5 revival of [ToneMatrix by Audiotool](https://tonematrix.audiotool.com/), which was originally written in Flash.
 
 <a href="https://www.maxlaumeister.com/tonematrix/"><img alt="ToneMatrix Redux Screenshot" src="/etc/screenshot.png?raw=true" height="300" title="Click To Play!"></a>
 
 [Click To Play](https://www.maxlaumeister.com/tonematrix/)
+
+## How to Play
+
+Visit [https://www.maxlaumeister.com/tonematrix/](https://www.maxlaumeister.com/tonematrix/)
 
 ## How To Build
 
