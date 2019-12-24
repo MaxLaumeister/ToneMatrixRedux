@@ -7,7 +7,7 @@ class ParticleSystem { // eslint-disable-line no-unused-vars
    */
   constructor(width, height) {
     Util.assert(arguments.length === 2);
-    this.PARTICLE_POOL_SIZE = 500;
+    this.PARTICLE_POOL_SIZE = 2000;
     this.PARTICLE_LIFETIME = 40;
 
     this.width = width;
@@ -74,5 +74,21 @@ class ParticleSystem { // eslint-disable-line no-unused-vars
     p.life = this.PARTICLE_LIFETIME;
     this.oldestParticle += 1;
     if (this.oldestParticle >= this.PARTICLE_POOL_SIZE) this.oldestParticle = 0;
+  }
+
+  /**
+   * Create a burst of particles exploding out in a circle from a single point
+   * @param {number} x - The x coordinate of the emanation point
+   * @param {number} y - The y coordinate of the emanation point
+   * @param {number} v - The velocity of the particles, in pixels per 1/60th of a second
+   * @param {number} n - The number of particles to create
+   */
+  createParticleBurst(x, y, v, n) {
+    const randomOffset = Math.random() * 2 * Math.PI;
+    for (let j = 0; j < 2 * Math.PI; j += (2 * Math.PI) / n) {
+      const pvx = Math.cos(j + randomOffset) * v;
+      const pvy = Math.sin(j + randomOffset) * v;
+      this.createParticle(x, y, pvx, pvy);
+    }
   }
 }

@@ -103,3 +103,5 @@ Util.devicePixelRatio = 1;
   updatePixelRatio();
   matchMedia(mqString).addEventListener('change', updatePixelRatio);
 }());
+
+Util.DEBUG = false;

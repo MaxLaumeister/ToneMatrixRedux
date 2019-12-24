@@ -80,29 +80,27 @@ class NotePlayer { // eslint-disable-line no-unused-vars
   scheduleNote(gridX, gridY) {
     Util.assert(arguments.length === 2);
     // Cycle through the voices
-    try {
-      const noteDuration = Tone.Time('1m') / this.gridWidth;
-      const playEvent = Tone.Transport.schedule((time) => {
-        const highVolume = -10; // When one note is playing
-        const lowVolume = -20; // When all notes are playing (lower volume to prevent peaking)
+    const noteDuration = Tone.Time('1m') / this.gridWidth;
+    const playEvent = Tone.Transport.schedule((time) => {
+      const highVolume = -10; // When one note is playing
+      const lowVolume = -20; // When all notes are playing (lower volume to prevent peaking)
 
-        const volume = ((this.gridHeight - this.polyphony[gridX]) / this.gridHeight)
-          * (highVolume - lowVolume) + lowVolume;
-
+      const volume = ((this.gridHeight - this.polyphony[gridX]) / this.gridHeight)
+        * (highVolume - lowVolume) + lowVolume;
+      try {
         this.players[this.currentPlayer].volume.value = volume;
         this.players[this.currentPlayer].start(
           time, gridY * this.noteOffset, this.noteOffset,
         );
         this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
-      }, gridX * noteDuration);
-      this.notes[playEvent] = { x: gridX, y: gridY };
-      this.polyphony[gridX] += 1;
-      return playEvent;
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn('Note play failure:', e);
-    }
-    return false;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        if (Util.DEBUG) console.warn('Note play failure:', e);
+      }
+    }, gridX * noteDuration);
+    this.notes[playEvent] = { x: gridX, y: gridY };
+    this.polyphony[gridX] += 1;
+    return playEvent;
   }
 
   /**

@@ -15,7 +15,6 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
    */
   constructor(canvasWrapperEl, clearNotesButtonEl, clipboardInputEl, clipboardButtonEl) {
     Util.assert(arguments.length === 4);
-    this.DEBUG = false;
 
     /**
      * The main canvas element that ToneMatrix draws to
