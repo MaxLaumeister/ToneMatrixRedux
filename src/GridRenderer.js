@@ -16,6 +16,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
     this.gridHeight = gridHeight;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    this.lastPlayheadX = -1;
   }
 
   /**
@@ -63,8 +64,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
     for (let i = 0; i < grid.data.length; i += 1) {
       const dx = this.canvas.height / this.gridHeight;
       const dy = this.canvas.width / this.gridWidth;
-      const gridx = i % this.gridWidth;
-      const gridy = Math.floor(i / this.gridWidth);
+      const { x: gridx, y: gridy } = Util.indexToCoord(i, this.gridWidth);
       const x = dx * gridx;
       const y = dy * gridy;
 
@@ -74,13 +74,15 @@ class GridRenderer { // eslint-disable-line no-unused-vars
         if (gridx === playheadX) {
           this.ctx.globalAlpha = 1;
           this.spriteSheet.drawSprite(2, this.ctx, x, y);
-          // Create particles
-          this.particleSystem.createParticleBurst(
-            dx * (gridx + 0.5),
-            dy * (gridy + 0.5),
-            10 * dpr,
-            20,
-          );
+          if (playheadX !== this.lastPlayheadX) {
+            // Create particles
+            this.particleSystem.createParticleBurst(
+              dx * (gridx + 0.5),
+              dy * (gridy + 0.5),
+              8 * dpr,
+              20,
+            );
+          }
         } else {
           this.ctx.globalAlpha = 0.85;
           this.spriteSheet.drawSprite(1, this.ctx, x, y);
@@ -109,6 +111,8 @@ class GridRenderer { // eslint-disable-line no-unused-vars
         this.ctx.fillRect(p.x, p.y, 2, 2);
       }
     }
+
+    this.lastPlayheadX = playheadX;
   }
 
   /**
@@ -121,9 +125,11 @@ class GridRenderer { // eslint-disable-line no-unused-vars
     const ps = this.particleSystem;
     for (let i = 0; i < ps.PARTICLE_POOL_SIZE; i += 1) {
       const p = ps.particles[i];
-      const tile = Util.pixelCoordsToTileCoords(p.x, p.y, this.gridWidth, this.gridHeight,
-        this.canvas.width, this.canvas.height);
-      if (tile) heatmap[this.gridWidth * tile.y + tile.x] = p.life;
+      if (p.life > 0) {
+        const tile = Util.pixelCoordsToTileCoords(p.x, p.y, this.gridWidth, this.gridHeight,
+          this.canvas.width, this.canvas.height);
+        if (tile) heatmap[Util.coordToIndex(tile.x, tile.y, this.gridWidth)] += p.life;
+      }
     }
     return heatmap;
   }

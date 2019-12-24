@@ -48,7 +48,7 @@ class ParticleSystem { // eslint-disable-line no-unused-vars
             p.vy = -p.vy;
             p.y += pvy;
           }
-          p.life -= 1;
+          p.life -= deltaTime;
         }
       }
       this.lastUpdate = now;
@@ -77,7 +77,7 @@ class ParticleSystem { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Create a burst of particles exploding out in a circle from a single point
+   * Creates a burst of particles exploding out in a circle from a single point
    * @param {number} x - The x coordinate of the emanation point
    * @param {number} y - The y coordinate of the emanation point
    * @param {number} v - The velocity of the particles, in pixels per 1/60th of a second

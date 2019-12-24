@@ -35,10 +35,23 @@ class Util { // eslint-disable-line no-unused-vars
    * @param {number} x - The x coordinate
    * @param {number} y - The y coordinate
    * @param {number} gridWidth - The width of the 2-D representation (the grid width)
+   * @returns {number} - The corresponding index
    */
   static coordToIndex(x, y, gridWidth) {
     Util.assert(arguments.length === 3);
     return x * gridWidth + y;
+  }
+
+  /**
+   * Converts a 1-D array index into an (x, y) coordinate in its corresponding 2-D representation
+   * @param {number} x - The x coordinate
+   * @param {number} y - The y coordinate
+   * @param {number} gridWidth - The width of the 2-D representation (the grid width)
+   * @returns {point} - The corresponding x and y coordinates
+   */
+  static indexToCoord(index, gridWidth) {
+    Util.assert(arguments.length === 2);
+    return {x: Math.floor(index / gridWidth), y: index % gridWidth};
   }
 
   /**
