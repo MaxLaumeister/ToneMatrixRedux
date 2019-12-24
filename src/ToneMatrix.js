@@ -128,7 +128,7 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
     Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
-    Tone.Transport.toggle(); // start
+    Tone.Transport.start();
 
     // If Chrome Autoplay Policy is blocking audio,
     // add a play button that encourages user interaction

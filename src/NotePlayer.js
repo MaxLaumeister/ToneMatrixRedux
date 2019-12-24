@@ -40,7 +40,7 @@ class NotePlayer { // eslint-disable-line no-unused-vars
       const lowPass = new Tone.Filter({
         frequency: 1100,
         rolloff: -12,
-      }).toMaster();
+      }).toDestination();
 
       const synth = new Tone.Synth({
         oscillator: {
@@ -59,7 +59,7 @@ class NotePlayer { // eslint-disable-line no-unused-vars
       });
     }, this.noteOffset * scale.length).then((buffer) => {
       for (let i = 0; i < scale.length * self.numVoices; i += 1) {
-        this.players.push(new Tone.Player(buffer).toMaster());
+        this.players.push(new Tone.Player(buffer).toDestination());
       }
     });
 
