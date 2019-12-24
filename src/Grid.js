@@ -51,13 +51,12 @@ class Grid {
       const volume = ((this.height - this.countNotesInColumn(x)) / this.height)
         * (highVolume - lowVolume) + lowVolume;
 
-      this.data[Util.coordToIndex(x, y, this.width)] = Tone.Transport.schedule((time) => {
-        this.player.play(y, time, volume);
-      }, (Tone.Time('1m') / this.width) * x);
+      this.data[Util.coordToIndex(x, y, this.width)] = this.player.scheduleNote(x, y, volume);
+
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
-      Tone.Transport.clear(this.data[Util.coordToIndex(x, y, this.width)]);
+      this.player.unscheduleNote(this.data[Util.coordToIndex(x, y, this.width)]);
       this.data[Util.coordToIndex(x, y, this.width)] = false;
     }
   }

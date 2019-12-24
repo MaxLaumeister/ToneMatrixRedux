@@ -4,6 +4,10 @@
 class NotePlayer {
   constructor(gridWidth, gridHeight) {
     Util.assert(arguments.length === 2);
+
+    this.gridWidth = gridWidth;
+    this.gridHeight = gridHeight;
+
     // Construct scale array
     const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
     const octave = 3; // base octave
@@ -18,7 +22,7 @@ class NotePlayer {
     // Pre-render synth
 
     this.numVoices = 3; // Number of voices (players) *per note*
-    this.noteDuration = (Tone.Time('1m') / gridWidth) * 6; // Total note duration, including release
+    this.noteOffset = (Tone.Time('1m') / gridWidth) * 6; // Total note duration, including release. Used to offset the sound sprites
 
     this.players = [];
 
@@ -44,25 +48,39 @@ class NotePlayer {
       }).connect(lowPass);
 
       scale.forEach((el, idx) => {
-        synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, idx * self.noteDuration);
+        synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, idx * self.noteOffset);
       });
-    }, this.noteDuration * scale.length).then((buffer) => {
+    }, this.noteOffset * scale.length).then((buffer) => {
       for (let i = 0; i < scale.length * self.numVoices; i += 1) {
         this.players.push(new Tone.Player(buffer).toMaster());
       }
     });
   }
 
-  play(index, time, volume) {
+  scheduleNote(gridX, gridY, volume) {
     Util.assert(arguments.length === 3);
     // Cycle through the voices
     try {
-      this.players[this.currentPlayer].volume.value = volume;
-      this.players[this.currentPlayer].start(time, index * this.noteDuration, this.noteDuration);
-      this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+      const noteDuration = Tone.Time('1m') / this.gridWidth;
+      const playEvent = Tone.Transport.schedule((time) => {
+        this.players[this.currentPlayer].volume.value = volume;
+        this.players[this.currentPlayer].start(
+          time, gridY * this.noteOffset, this.noteOffset,
+        );
+        this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+      }, gridX * noteDuration);
+      return playEvent;
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('Note play failure:', e);
     }
+    return false;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  unscheduleNote(id) {
+    console.log(id);
+    Util.assert(arguments.length === 1);
+    Tone.Transport.clear(id);
   }
 }
