@@ -36,7 +36,7 @@ class Grid { // eslint-disable-line no-unused-vars
    */
   getTileValue(x, y) {
     Util.assert(arguments.length === 2);
-    return this.data[Util.coordToIndex(x, y, this.width)] !== false;
+    return this.data[Util.coordToIndex(x, y, this.height)] !== false;
   }
 
   /**
@@ -51,12 +51,12 @@ class Grid { // eslint-disable-line no-unused-vars
       if (this.getTileValue(x, y)) return;
       // Turning on, schedule note
 
-      this.data[Util.coordToIndex(x, y, this.width)] = this.player.scheduleNote(x, y);
+      this.data[Util.coordToIndex(x, y, this.height)] = this.player.scheduleNote(x, y);
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
-      this.player.unscheduleNote(this.data[Util.coordToIndex(x, y, this.width)]);
-      this.data[Util.coordToIndex(x, y, this.width)] = false;
+      this.player.unscheduleNote(this.data[Util.coordToIndex(x, y, this.height)]);
+      this.data[Util.coordToIndex(x, y, this.height)] = false;
     }
   }
 

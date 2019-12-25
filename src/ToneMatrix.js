@@ -24,13 +24,6 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
     canvasWrapperEl.appendChild(this.c);
     const rect = this.c.getBoundingClientRect();
 
-    // Get the size of the canvas in CSS pixels.
-    // Give the canvas pixel dimensions of their CSS
-    // size * the device pixel ratio.
-    const dpr = devicePixelRatio || 1;
-    this.c.width = rect.width * dpr;
-    this.c.height = rect.height * dpr;
-
     /**
      * The main canvas element's 2d drawing context
      * @type {CanvasRenderingContext2D}
@@ -48,6 +41,13 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
      * @const {number}
      */
     this.HEIGHT = 16;
+
+    // Get the size of the canvas in CSS pixels.
+    // Give the canvas pixel dimensions of their CSS
+    // size * the device pixel ratio.
+    const dpr = devicePixelRatio || 1;
+    this.c.height = rect.height * dpr;
+    this.c.width = rect.height * (this.WIDTH / this.HEIGHT) * dpr;
 
     this.grid = new Grid(this.WIDTH, this.HEIGHT, this.c);
 

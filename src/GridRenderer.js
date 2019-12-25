@@ -62,13 +62,13 @@ class GridRenderer { // eslint-disable-line no-unused-vars
 
     // Draw each tile
     for (let i = 0; i < grid.data.length; i += 1) {
-      const dx = this.canvas.height / this.gridHeight;
-      const dy = this.canvas.width / this.gridWidth;
-      const { x: gridx, y: gridy } = Util.indexToCoord(i, this.gridWidth);
+      const dx = this.canvas.width / this.gridWidth;
+      const dy = this.canvas.height / this.gridHeight;
+      const { x: gridx, y: gridy } = Util.indexToCoord(i, this.gridHeight);
       const x = dx * gridx;
       const y = dy * gridy;
 
-      const on = grid.data[Util.coordToIndex(gridx, gridy, this.gridWidth)] !== false;
+      const on = grid.data[i] !== false;
 
       if (on) {
         if (gridx === playheadX) {
@@ -128,7 +128,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
       if (p.life > 0) {
         const tile = Util.pixelCoordsToTileCoords(p.x, p.y, this.gridWidth, this.gridHeight,
           this.canvas.width, this.canvas.height);
-        if (tile) heatmap[Util.coordToIndex(tile.x, tile.y, this.gridWidth)] += p.life;
+        if (tile) heatmap[Util.coordToIndex(tile.x, tile.y, this.gridHeight)] += p.life;
       }
     }
     return heatmap;

@@ -15,8 +15,8 @@ class Util { // eslint-disable-line no-unused-vars
    */
   static pixelCoordsToTileCoords(x, y, gridWidth, gridHeight, canvasWidth, canvasHeight) {
     Util.assert(arguments.length === 6);
-    const dx = canvasHeight / gridHeight;
-    const dy = canvasWidth / gridWidth;
+    const dx = canvasWidth / gridWidth;
+    const dy = canvasHeight / gridHeight;
     const xCoord = Math.floor(x / dx);
     const yCoord = Math.floor(y / dy);
     if (
@@ -34,24 +34,24 @@ class Util { // eslint-disable-line no-unused-vars
    * Converts 2-D coordinates to their corresponding index in a 1-D array representation
    * @param {number} x - The x coordinate
    * @param {number} y - The y coordinate
-   * @param {number} gridWidth - The width of the 2-D representation (the grid width)
+   * @param {number} gridHeight - The width of the 2-D representation (the grid height)
    * @returns {number} - The corresponding index
    */
-  static coordToIndex(x, y, gridWidth) {
+  static coordToIndex(x, y, gridHeight) {
     Util.assert(arguments.length === 3);
-    return x * gridWidth + y;
+    return x * gridHeight + y;
   }
 
   /**
    * Converts a 1-D array index into an (x, y) coordinate in its corresponding 2-D representation
    * @param {number} x - The x coordinate
    * @param {number} y - The y coordinate
-   * @param {number} gridWidth - The width of the 2-D representation (the grid width)
+   * @param {number} gridHeight - The width of the 2-D representation (the grid height)
    * @returns {point} - The corresponding x and y coordinates
    */
-  static indexToCoord(index, gridWidth) {
+  static indexToCoord(index, gridHeight) {
     Util.assert(arguments.length === 2);
-    return {x: Math.floor(index / gridWidth), y: index % gridWidth};
+    return { x: Math.floor(index / gridHeight), y: index % gridHeight };
   }
 
   /**
