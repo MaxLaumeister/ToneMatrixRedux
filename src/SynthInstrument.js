@@ -1,14 +1,14 @@
 /* global Tone */
 /* global Util */
-/** Manages instruments and allows the playback of notes */
-class NotePlayer { // eslint-disable-line no-unused-vars
+/** Allows the audio playback of notes */
+class SynthInstrument { // eslint-disable-line no-unused-vars
   /**
-   * Creates a NotePlayer. One player is sufficient for any number of instruments and notes.
+   * Creates a synth instrument
    * @param {number} gridWidth - The width of the grid, in tiles
    * @param {number} gridHeight - The height of the grid, in tiles
    */
-  constructor(gridWidth, gridHeight) {
-    Util.assert(arguments.length === 2);
+  constructor(gridWidth, gridHeight, options, filterOptions) {
+    Util.assert(arguments.length === 4);
 
     this.gridWidth = gridWidth;
     this.gridHeight = gridHeight;
@@ -18,12 +18,12 @@ class NotePlayer { // eslint-disable-line no-unused-vars
     const pentatonic = ['B#', 'D', 'F', 'G', 'A'];
     const octave = 3; // base octave
     const octaveoffset = 4;
-    let scale = Array(gridHeight);
+    const scale = Array(gridHeight);
     for (let i = 0; i < gridHeight; i += 1) {
       scale[i] = pentatonic[i % pentatonic.length]
         + (octave + Math.floor((i + octaveoffset) / pentatonic.length));
     }
-    scale = scale.reverse(); // higher notes at lower y values, near the top
+    this.scale = scale.reverse(); // higher notes at lower y values, near the top
 
     // Pre-render synth
 
@@ -34,40 +34,28 @@ class NotePlayer { // eslint-disable-line no-unused-vars
 
     this.currentPlayer = 0;
 
-    const self = this;
-
-    Tone.Offline(() => {
-      const lowPass = new Tone.Filter({
-        frequency: 1100,
-        rolloff: -12,
-      }).toDestination();
-
-      const synth = new Tone.Synth({
-        oscillator: {
-          type: 'sine',
-        },
-        envelope: {
-          attack: 0.005,
-          decay: 0.1,
-          sustain: 0.3,
-          release: 1,
-        },
-      }).connect(lowPass);
-
-      scale.forEach((el, idx) => {
-        synth.triggerAttackRelease(el, Tone.Time('1m') / gridWidth, idx * self.noteOffset);
-      });
-    }, this.noteOffset * scale.length).then((buffer) => {
-      for (let i = 0; i < scale.length * self.numVoices; i += 1) {
-        this.players.push(new Tone.Player(buffer).toDestination());
-      }
-    });
-
     // Init polyphony tracker. More notes playing at the same time
     // means that each note needs to play quieter
 
     this.polyphony = Array(gridWidth).fill(0);
     this.notes = []; // Sparse array
+
+    const self = this;
+    Tone.Offline(() => {
+      const filter = new Tone.Filter(filterOptions).toDestination();
+      const synth = new Tone.Synth(options).connect(filter);
+
+      this.scale.forEach((el, idx) => {
+        synth.triggerAttackRelease(el, Tone.Time('1m') / this.gridWidth, idx * self.noteOffset);
+      });
+    }, this.noteOffset * this.scale.length).then((buffer) => {
+      for (let i = 0; i < this.scale.length * self.numVoices; i += 1) {
+        Tone.setContext(Tone.context);
+        const player = new Tone.Player(buffer);
+        Tone.connect(player, Tone.Destination);
+        this.players.push(player);
+      }
+    });
   }
 
   /**

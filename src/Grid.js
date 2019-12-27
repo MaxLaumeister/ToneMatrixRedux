@@ -1,5 +1,5 @@
 /* global GridRenderer */
-/* global NotePlayer */
+/* global SynthInstrument */
 /* global Util */
 /** A 2-D matrix that keeps track of notes and can enable, disable, and play them */
 class Grid { // eslint-disable-line no-unused-vars
@@ -15,7 +15,38 @@ class Grid { // eslint-disable-line no-unused-vars
     this.width = width;
     this.height = height;
     this.renderer = new GridRenderer(width, height, canvas);
-    this.player = new NotePlayer(width, height);
+    this.currentInstrument = 0;
+    this.instruments = [];
+    this.instruments.push(new SynthInstrument(width, height, {
+      oscillator: {
+        type: 'sine',
+      },
+      envelope: {
+        attack: 0.005,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 1,
+      },
+    },
+    {
+      frequency: 1100,
+      rolloff: -12,
+    }));
+    this.instruments.push(new SynthInstrument(width, height, {
+      oscillator: {
+        type: 'sawtooth',
+      },
+      envelope: {
+        attack: 0.005,
+        decay: 0.1,
+        sustain: 0.3,
+        release: 2,
+      },
+    },
+    {
+      frequency: 1100,
+      rolloff: -12,
+    }));
   }
 
   /**
@@ -51,11 +82,11 @@ class Grid { // eslint-disable-line no-unused-vars
       if (this.getTileValue(x, y)) return;
       // Turning on, schedule note
 
-      this.data[Util.coordToIndex(x, y, this.height)] = this.player.scheduleNote(x, y);
+      this.data[Util.coordToIndex(x, y, this.height)] = this.instruments[this.currentInstrument].scheduleNote(x, y);
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
-      this.player.unscheduleNote(this.data[Util.coordToIndex(x, y, this.height)]);
+      this.instruments[this.currentInstrument].unscheduleNote(this.data[Util.coordToIndex(x, y, this.height)]);
       this.data[Util.coordToIndex(x, y, this.height)] = false;
     }
   }

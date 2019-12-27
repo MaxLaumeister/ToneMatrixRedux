@@ -41,7 +41,7 @@ class GridRenderer { // eslint-disable-line no-unused-vars
   draw(grid, mouseX, mouseY) {
     Util.assert(arguments.length === 3);
 
-    const playheadX = grid.player.getPlayheadX();
+    const playheadX = grid.instruments[grid.currentInstrument].getPlayheadX();
     const dpr = Util.getDevicePixelRatio();
 
     // Defaults
