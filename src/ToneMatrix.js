@@ -124,6 +124,18 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
       );
     });
 
+    // Secret instrument switcher
+
+    window.addEventListener('keydown', (event) => {
+      if (!event.isComposing && !(event.keyCode === 229)) { // not some chinese character weirdness
+        if (event.keyCode >= 48 && event.keyCode <= 57) {
+          this.grid.setCurrentInstrument(event.keyCode - 48); // 0 through 9
+        } else if (event.keyCode >= 96 && event.keyCode <= 105) {
+          this.grid.setCurrentInstrument(event.keyCode - 96); // 0 through 9, numpad
+        }
+      }
+    });
+
     this.SYNTHLATENCY = 0.25; // Queue events ahead of time
     Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
@@ -216,7 +228,6 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
   clear() {
     Util.assert(arguments.length === 0);
     this.grid.clearAllTiles();
-    Tone.Transport.cancel();
     this.resetSharingURL(); // get rid of hash
   }
 

@@ -1,6 +1,8 @@
 /* global GridRenderer */
 /* global SynthInstrument */
 /* global Util */
+/* global Tile */
+/* global Tone */
 /** A 2-D matrix that keeps track of notes and can enable, disable, and play them */
 class Grid { // eslint-disable-line no-unused-vars
   /**
@@ -11,7 +13,7 @@ class Grid { // eslint-disable-line no-unused-vars
    */
   constructor(width, height, canvas) {
     Util.assert(arguments.length === 3);
-    this.data = Array(width * height).fill(false);
+    this.data = Array(width * height).fill().map(() => (new Tile()));
     this.width = width;
     this.height = height;
     this.renderer = new GridRenderer(width, height, canvas);
@@ -67,7 +69,7 @@ class Grid { // eslint-disable-line no-unused-vars
    */
   getTileValue(x, y) {
     Util.assert(arguments.length === 2);
-    return this.data[Util.coordToIndex(x, y, this.height)] !== false;
+    return this.data[Util.coordToIndex(x, y, this.height)].hasNote(this.currentInstrument);
   }
 
   /**
@@ -82,12 +84,16 @@ class Grid { // eslint-disable-line no-unused-vars
       if (this.getTileValue(x, y)) return;
       // Turning on, schedule note
 
-      this.data[Util.coordToIndex(x, y, this.height)] = this.instruments[this.currentInstrument].scheduleNote(x, y);
+      this.data[Util.coordToIndex(x, y, this.height)].addNote(this.currentInstrument,
+        this.instruments[this.currentInstrument]
+          .scheduleNote(x, y));
     } else {
       if (!this.getTileValue(x, y)) return;
       // Turning off, unschedule note
-      this.instruments[this.currentInstrument].unscheduleNote(this.data[Util.coordToIndex(x, y, this.height)]);
-      this.data[Util.coordToIndex(x, y, this.height)] = false;
+      this.instruments[this.currentInstrument]
+        .unscheduleNote(this.data[Util.coordToIndex(x, y, this.height)]
+          .getNote(this.currentInstrument));
+      this.data[Util.coordToIndex(x, y, this.height)].removeNote(this.currentInstrument);
     }
   }
 
@@ -102,11 +108,21 @@ class Grid { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Turns off all tiles and remove all notes
+   * Turns off all tiles and removes all notes
    */
   clearAllTiles() {
     Util.assert(arguments.length === 0);
-    this.data = Array(this.width * this.height).fill(false);
+    this.data.forEach((e) => e.removeAllNotes());
+    Tone.Transport.cancel();
+  }
+
+  setCurrentInstrument(instrumentId) {
+    if (instrumentId >= this.instruments.length) {
+      // eslint-disable-next-line no-console
+      console.warn('tried to switch to nonexistent instrument');
+    } else {
+      this.currentInstrument = instrumentId;
+    }
   }
 
   /**
@@ -121,7 +137,7 @@ class Grid { // eslint-disable-line no-unused-vars
     for (let i = 0; i < this.data.length / 8; i += 1) {
       let str = '';
       for (let j = 0; j < 8; j += 1) {
-        const tile = this.data[Util.coordToIndex(i, j, 8)] !== false;
+        const tile = !this.data[Util.coordToIndex(i, j, 8)].isEmpty();
         if (tile) {
           str += '1';
           dataflag = true;

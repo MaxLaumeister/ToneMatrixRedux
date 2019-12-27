@@ -50,7 +50,7 @@ class SynthInstrument { // eslint-disable-line no-unused-vars
       });
     }, this.noteOffset * this.scale.length).then((buffer) => {
       for (let i = 0; i < this.scale.length * self.numVoices; i += 1) {
-        Tone.setContext(Tone.context);
+        Tone.setContext(Tone.context); // Hopefully there's no weird asynchronicity issue here
         const player = new Tone.Player(buffer);
         Tone.connect(player, Tone.Destination);
         this.players.push(player);

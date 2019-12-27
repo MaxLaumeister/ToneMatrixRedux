@@ -68,8 +68,13 @@ class GridRenderer { // eslint-disable-line no-unused-vars
       const x = dx * gridx;
       const y = dy * gridy;
 
-      const on = grid.data[i] !== false;
+      const on = !grid.data[i].isEmpty();
 
+      if (grid.data[i].hasNote(1)) {
+        this.ctx.filter = 'brightness(50%) sepia(100) saturate(100) hue-rotate(25deg)';
+      } else {
+        this.ctx.filter = 'none';
+      }
       if (on) {
         if (gridx === playheadX) {
           this.ctx.globalAlpha = 1;

@@ -60,7 +60,7 @@
 	<p><a id="clearnotes" class="button" href="javascript:void(0)">Clear Notes</a> Based on <a href="https://tonematrix.audiotool.com/">ToneMatrix</a> - By <a href="https://www.maxlaumeister.com/">Max L</a></p>
 	<script src="all.js"></script>
 	<script>
-		new ToneMatrix(document.querySelector(".canvaswrap"), document.querySelector("#clearnotes"), document.querySelector("#clipboard-input"), document.querySelector(".clipboard"));
+		const toneMatrixInstance = new ToneMatrix(document.querySelector(".canvaswrap"), document.querySelector("#clearnotes"), document.querySelector("#clipboard-input"), document.querySelector(".clipboard"));
 	</script>
   </body>
 </html>
