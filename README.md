@@ -28,6 +28,10 @@ Visit [https://www.maxlaumeister.com/tonematrix/](https://www.maxlaumeister.com/
 
 In any case, the compiled application will be in the `dist` folder.
 
+# Class Diagram (UML)
+
+<img alt="ToneMatrix Class Diagram" src="/etc/uml.png?raw=true" title="ToneMatrix Class Diagram">
+
 ## Useful tools
 
 * Install the `eslint` extension in VS Code by using the built-in extension browser. VS Code should automatically find the `.eslintrc.js` config file and start highlighting lines of js that fail the linter.
