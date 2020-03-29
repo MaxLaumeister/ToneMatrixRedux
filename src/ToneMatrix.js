@@ -1,7 +1,8 @@
 /* global ClipboardJS */
 /* global Tone */
-/* global Grid */
-/* global Util */
+import Grid from './Grid';
+import Util from './Util';
+
 /** Main class of ToneMatrix Redux, a pentatonic step sequencer */
 class ToneMatrix { // eslint-disable-line no-unused-vars
   /**
@@ -249,3 +250,5 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
     this.clipboardInputEl.value = this.originalURL;
   }
 }
+
+window.ToneMatrix = ToneMatrix;

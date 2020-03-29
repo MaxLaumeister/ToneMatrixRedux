@@ -1,8 +1,8 @@
-/* global SpriteSheet */
-/* global ParticleSystem */
-/* global Util */
+import SpriteSheet from './SpriteSheet';
+import ParticleSystem from './ParticleSystem';
+import Util from './Util';
 /** Renders a Grid to a canvas element */
-class GridRenderer { // eslint-disable-line no-unused-vars
+export default class GridRenderer { // eslint-disable-line no-unused-vars
   /**
    * @param {number} gridWidth - The width of the grid, in tiles
    * @param {number} gridHeight - The height of the grid, in tiles

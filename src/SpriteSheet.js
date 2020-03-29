@@ -1,6 +1,6 @@
-/* global Util */
+import Util from './Util';
 /** Manages the sprite sheet. To draw a sprite, use drawSprite(). */
-class SpriteSheet { // eslint-disable-line no-unused-vars
+export default class SpriteSheet { // eslint-disable-line no-unused-vars
   /**
    * @param {number} gridWidth The width of the grid, in tiles
    * @param {number} gridHeight The height of the grid, in tiles

@@ -1,7 +1,7 @@
 /* global Tone */
-/* global Util */
+import Util from './Util';
 /** Allows the audio playback of notes */
-class SynthInstrument { // eslint-disable-line no-unused-vars
+export default class SynthInstrument { // eslint-disable-line no-unused-vars
   /**
    * Creates a synth instrument
    * @param {number} gridWidth - The width of the grid, in tiles

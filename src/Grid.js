@@ -1,10 +1,10 @@
-/* global GridRenderer */
-/* global SynthInstrument */
-/* global Util */
-/* global Tile */
+import GridRenderer from './GridRenderer';
+import SynthInstrument from './SynthInstrument';
+import Util from './Util';
+import Tile from './Tile';
 /* global Tone */
 /** A 2-D matrix that keeps track of notes and can enable, disable, and play them */
-class Grid { // eslint-disable-line no-unused-vars
+export default class Grid { // eslint-disable-line no-unused-vars
   /**
    * Creates a new Grid
    * @param {number} width - The width of the grid in tiles

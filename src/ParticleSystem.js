@@ -1,6 +1,6 @@
-/* global Util */
+import Util from './Util';
 /** A particle system which contains particles that update themselves */
-class ParticleSystem { // eslint-disable-line no-unused-vars
+export default class ParticleSystem { // eslint-disable-line no-unused-vars
   /**
    * @param {number} width - Height of the particle system, typically in pixels
    * @param {number} height - Width of the particle system, typically in pixels

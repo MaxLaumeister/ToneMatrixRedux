@@ -1,4 +1,4 @@
-class Tile { // eslint-disable-line no-unused-vars
+export default class Tile { // eslint-disable-line no-unused-vars
   constructor() {
     /**
      * A sparse array containing Tone.js scheduled event IDs, indexed by instrument id

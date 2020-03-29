@@ -1,5 +1,5 @@
 /** A static class that provides pure functions */
-class Util { // eslint-disable-line no-unused-vars
+export default class Util { // eslint-disable-line no-unused-vars
   /**
    * Converts coordinates in "pixel space" to coordinates in "tile space".
    * In essence, if you pass in an (x, y) position on the canvas,
