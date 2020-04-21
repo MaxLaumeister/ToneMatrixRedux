@@ -19,7 +19,9 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify-es": "^2.0.0",
     "gulp-watch": "^5.0.1",
-    "node-sass": "^4.13.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.13.1",
+    "sass-loader": "^8.0.2",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   }

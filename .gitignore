@@ -1,6 +1,4 @@
-# Dist folder
-
-dist/
+dist/ToneMatrix.min.js
 
 # Docs folder
 
@@ -85,10 +83,6 @@ typings/
 
 # Next.js build output
 .next
-
-# Nuxt.js build / generate output
-.nuxt
-dist
 
 # Gatsby files
 .cache/
