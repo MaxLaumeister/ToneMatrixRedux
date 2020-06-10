@@ -13,8 +13,9 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
    * @param {Element} clipboardButtonEl - A DOM element that should copy the level code to the
    *    clipboard when clicked
    */
-  constructor(canvasWrapperEl, clearNotesButtonEl, clipboardInputEl, clipboardButtonEl) {
-    Util.assert(arguments.length === 4);
+  constructor(canvasWrapperEl, clearNotesButtonEl, clipboardInputEl,
+    clipboardButtonEl, muteButtonEl) {
+    Util.assert(arguments.length === 5);
 
     /**
      * The main canvas element that ToneMatrix draws to
@@ -67,6 +68,18 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
 
     // eslint-disable-next-line no-new
     new ClipboardJS(clipboardButtonEl);
+
+    // Mute button element
+
+    muteButtonEl.addEventListener('click', () => {
+      if (muteButtonEl.classList.contains('muted')) {
+        muteButtonEl.classList.remove('muted');
+        this.setMuted(false);
+      } else {
+        muteButtonEl.classList.add('muted');
+        this.setMuted(true);
+      }
+    });
 
     // Listen for clicks on the canvas
 
@@ -229,6 +242,15 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
     Util.assert(arguments.length === 0);
     this.grid.clearAllTiles();
     this.resetSharingURL(); // get rid of hash
+  }
+
+  /**
+   * Sets whether the ToneMatrix application is muted.
+   * @param {boolean} muted - True for muted, false for unmuted
+   */
+  setMuted(muted) {
+    Util.assert(arguments.length === 1);
+    this.grid.setMuted(muted);
   }
 
   /**

@@ -126,6 +126,16 @@ class Grid { // eslint-disable-line no-unused-vars
   }
 
   /**
+   * Sets whether the ToneMatrix grid is muted.
+   * @param {boolean} muted - True for muted, false for unmuted
+   */
+  // eslint-disable-next-line class-methods-use-this
+  setMuted(muted) {
+    Util.assert(arguments.length === 1);
+    Tone.Destination.mute = muted;
+  }
+
+  /**
    * Saves the grid's current state into a savestate string
    * @returns {string} savestate - The base64-encoded URL-encoded savestate string,
    *   ready for saving or outputting in a URL
