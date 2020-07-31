@@ -149,8 +149,6 @@ class ToneMatrix { // eslint-disable-line no-unused-vars
       }
     });
 
-    this.SYNTHLATENCY = 0.25; // Queue events ahead of time
-    Tone.context.latencyHint = this.SYNTHLATENCY;
     Tone.Transport.loopEnd = '1m'; // loop at one measure
     Tone.Transport.loop = true;
     Tone.Transport.start();

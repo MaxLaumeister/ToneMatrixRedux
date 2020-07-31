@@ -76,7 +76,7 @@ class SynthInstrument { // eslint-disable-line no-unused-vars
       const volume = ((this.gridHeight - this.polyphony[gridX]) / this.gridHeight)
         * (highVolume - lowVolume) + lowVolume;
       try {
-        this.players[this.currentPlayer].volume.value = volume;
+        this.players[this.currentPlayer].volume.setValueAtTime(volume, time);
         this.players[this.currentPlayer].start(
           time, gridY * this.noteOffset, this.noteOffset,
         );
