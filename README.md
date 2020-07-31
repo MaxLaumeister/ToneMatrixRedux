@@ -40,3 +40,8 @@ In any case, the compiled application will be in the `dist` folder.
 ## TODO
 
 See [Issues](https://github.com/MaxLaumeister/ToneMatrixRedux/issues).
+
+## Special Thanks
+
+Thanks to [SimplyLinn](https://github.com/SimplyLinn) for [this performance fix](https://github.com/MaxLaumeister/ToneMatrixRedux/pull/26)!
+
